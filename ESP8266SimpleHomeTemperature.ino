@@ -2,9 +2,17 @@
 #include <LittleFS.h>
 #include "Connectivity.h"
 #include "Routes.h"
+#include "Logging.h"
 #include "Config.h"
 
 ESP8266WebServer server(80);
+
+float temperature = 0;
+float humidity = 0;
+
+#ifdef LOGGING
+int cycle = 0;
+#endif
 
 void setup() {
   delay(1000);
@@ -31,5 +39,26 @@ void setup() {
 
 void loop() {
   server.handleClient();
+
+  #ifdef LOGGING
+  if (cycle % 100 == 0) {
+    char* logMessage = (char*) malloc(sizeof(char) * 64);
+    
+    uint32_t freeHeap = ESP.getFreeHeap();
+    sprintf(logMessage, "Heap Usage:       %d %%", (freeHeap * 100) / 64000 * (-1) + 100);
+    log(logMessage);
+
+    sprintf(logMessage, "Last Temperature: %g °C", temperature);
+    log(logMessage);
+
+    sprintf(logMessage, "Last Humidity:    %g %%\n", humidity);
+    log(logMessage);
+    
+    free(logMessage);
+    cycle = 0;
+  }
+  cycle++;
+  #endif
+  
   delay(100);
 }
