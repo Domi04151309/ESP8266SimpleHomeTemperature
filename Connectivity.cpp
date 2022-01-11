@@ -15,9 +15,13 @@ void configureNetwork() {
   } else {
     log("Attempting to connect...");
     char* roomName = readFromFile("room_name");
+    char* customHostname = (char*) malloc(sizeof(char) * 64);
+    sprintf(customHostname, "ESP8266-SimpleHome-%s", strlen(roomName) == 0 ? DEFAULT_ROOM_NAME : roomName);
     WiFi.mode(WIFI_STA);
-    WiFi.hostname("ESP8266-SimpleHome-" + String(strlen(roomName) == 0 ? DEFAULT_ROOM_NAME : roomName));
+    WiFi.hostname(customHostname);
     WiFi.begin(ssid, password);
+    free(roomName);
+    free(customHostname);
     for (int i = 0; i < 50 && WiFi.status() != WL_CONNECTED; i++) delay(100);
     if ((WiFi.status() != WL_CONNECTED)) {
       log("Failed to connect");
@@ -35,7 +39,6 @@ void configureNetwork() {
       free(logMessage);
       #endif
     }
-    free(roomName);
   }
   free(ssid);
   free(password);
