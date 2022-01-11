@@ -5,15 +5,11 @@
 #include <ESP8266WiFi.h>
 #include "Files.h"
 #include "Logging.h"
+#include "Config.h"
 
 Routes::Routes(ESP8266WebServer* webServer) {
   server = webServer;
   shouldRestart = false;
-  log("---Current settings---");
-  log(readFromFile("ssid"));
-  log(readFromFile("password"));
-  log(readFromFile("room_name"));
-  log("---------END----------");
 }
 
 void Routes::handleRoot() {
@@ -34,7 +30,8 @@ void Routes::handleWiFi() {
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
-
+  
+  char* ssid = readFromFile("ssid");
   String page;
   page += F(
             "<!doctype html><html>" HTML_HEAD "<body>"
@@ -54,14 +51,19 @@ void Routes::handleWiFi() {
             "</ul>"
             "<h2>Connect to a Network</h2>"
             "<form method='POST' action='wifi-save'>"
-            "<input type='text' placeholder='SSID' name='ssid' required />"
+            "<input type='text' placeholder='SSID' name='ssid' value='"
+          );
+  page += ssid;
+  page += F(
+            "' required />"
             "<input type='password' placeholder='Password' name='password' required />"
-            "<input type='submit' value='Connect'/>"
+            "<input type='submit' value='Connect' />"
             "</form>"
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
   server->send(200, "text/html", page);
+  free(ssid);
 }
 
 void Routes::handleWiFiSave() {
@@ -82,24 +84,30 @@ void Routes::handleRoomName() {
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
 
+  char* roomName = readFromFile("room_name");
   String page;
   page += F(
             "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>Room Name</h1>"
             "<p>The current room name is &ldquo;"
           );
-  page += readFromFile("room_name");
+  page += SAVED_OR_DEFAULT_ROOM_NAME(roomName);
   page += F(
             "&rdquo;.</p>"
             "<h2>Change Room Name</h2>"
             "<form method='POST' action='room-name-save'>"
-            "<input type='text' placeholder='Room Name' name='name' required />"
-            "<input type='submit' value='Change'/>"
+            "<input type='text' placeholder='Room name' name='name' value='"
+          );
+  page += roomName;
+  page += F(
+            "' />"
+            "<input type='submit' value='Change' />"
             "</form>"
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
   server->send(200, "text/html", page);
+  free(roomName);
 }
 
 void Routes::handleRoomNameSave() {

@@ -85,9 +85,9 @@ void handleCommands() {
     message, 
     "{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\"}}}",
     temperature,
-    strlen(roomName) == 0 ? DEFAULT_ROOM_NAME : roomName,
+    SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     humidity,
-    strlen(roomName) == 0 ? DEFAULT_ROOM_NAME : roomName
+    SAVED_OR_DEFAULT_ROOM_NAME(roomName)
   );
   
   server.send(200, "application/json", message);

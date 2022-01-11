@@ -16,7 +16,7 @@ void configureNetwork() {
     log("Attempting to connect...");
     char* roomName = readFromFile("room_name");
     char* customHostname = (char*) malloc(sizeof(char) * 64);
-    sprintf(customHostname, "ESP8266-SimpleHome-%s", strlen(roomName) == 0 ? DEFAULT_ROOM_NAME : roomName);
+    sprintf(customHostname, "ESP8266-SimpleHome-%s", SAVED_OR_DEFAULT_ROOM_NAME(roomName));
     WiFi.mode(WIFI_STA);
     WiFi.hostname(customHostname);
     WiFi.begin(ssid, password);

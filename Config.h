@@ -7,4 +7,6 @@
 
 #define LOGGING
 
+#define SAVED_OR_DEFAULT_ROOM_NAME(string) (strlen(string) == 0 ? DEFAULT_ROOM_NAME : string)
+
 #endif
