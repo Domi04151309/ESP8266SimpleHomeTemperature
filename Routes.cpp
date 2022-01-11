@@ -41,10 +41,12 @@ void Routes::handleWiFi() {
             "<h2>Available Networks</h2>"
             "<ul>"
           );
-  int n = WiFi.scanNetworks();
+  byte n = WiFi.scanNetworks();
   if (n > 0) {
-    for (int i = 0; i < n; i++) {
-      page += String(F("<li>")) + WiFi.SSID(i) + F("</li>");
+    for (byte i = 0; i < n; i++) {
+      page += F("<li>");
+      page += WiFi.SSID(i);
+      page += F("</li>");
     }
   } else {
     page += F("<li>No networks found</li>");

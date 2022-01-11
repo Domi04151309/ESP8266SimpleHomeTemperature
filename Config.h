@@ -6,6 +6,9 @@
 #define DEFAULT_ROOM_NAME "Room"
 
 #define LOGGING
+#define LOGGING_INTERVAL 30000
+
+#define LOOP_DELAY 100
 
 #define SAVED_OR_DEFAULT_ROOM_NAME(string) (strlen(string) == 0 ? DEFAULT_ROOM_NAME : string)
 

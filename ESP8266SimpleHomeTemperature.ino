@@ -16,7 +16,7 @@ float temperature = 0;
 float humidity = 0;
 
 #ifdef LOGGING
-int cycle = 0;
+unsigned int cycle = 0;
 #endif
 
 void setup() {
@@ -56,17 +56,13 @@ void loop() {
   server.handleClient();
 
   #ifdef LOGGING
-  if (cycle % 100 == 0) {
+  if ((cycle * LOOP_DELAY) / LOGGING_INTERVAL >= 1) {
     char* logMessage = (char*) malloc(sizeof(char) * 64);
     sprintf(logMessage, "WiFi Status:        %s", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected");
     log(logMessage);
     sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
     log(logMessage);
-    sprintf(logMessage, "Heap Fragmentation: %d %%", ESP.getHeapFragmentation());
-    log(logMessage);
-    sprintf(logMessage, "Last Temperature:   %g °C", temperature);
-    log(logMessage);
-    sprintf(logMessage, "Last Humidity:      %g %%\n", humidity);
+    sprintf(logMessage, "Heap Fragmentation: %d %%\n", ESP.getHeapFragmentation());
     log(logMessage);
     free(logMessage);
     cycle = 0;
@@ -74,7 +70,7 @@ void loop() {
   cycle++;
   #endif
   
-  delay(100);
+  delay(LOOP_DELAY);
 }
 
 void handleCommands() {
@@ -91,7 +87,7 @@ void handleCommands() {
   }
   
   char* roomName = readFromFile("room_name");
-  char* message = (char*) malloc(sizeof(char) * 512);
+  char* message = (char*) malloc(sizeof(char) * 256);
   sprintf(
     message, 
     "{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\"}}}",

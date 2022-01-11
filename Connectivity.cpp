@@ -22,8 +22,8 @@ void configureNetwork() {
     WiFi.begin(ssid, password);
     free(roomName);
     free(customHostname);
-    for (int i = 0; i < 50 && WiFi.status() != WL_CONNECTED; i++) delay(100);
-    if ((WiFi.status() != WL_CONNECTED)) {
+    for (byte i = 0; i < 50 && WiFi.status() != WL_CONNECTED; i++) delay(100);
+    if (WiFi.status() != WL_CONNECTED) {
       log("Failed to connect");
       WiFi.disconnect();
       startAP();
@@ -34,7 +34,7 @@ void configureNetwork() {
       log(logMessage);
       sprintf(logMessage, "IP address: %s", WiFi.localIP().toString().c_str());
       log(logMessage);
-      sprintf(logMessage, "Signal strength (RSSI): %ld dBm", WiFi.RSSI());
+      sprintf(logMessage, "Signal strength (RSSI): %ld dBm\n", WiFi.RSSI());
       log(logMessage); 
       free(logMessage);
       #endif
