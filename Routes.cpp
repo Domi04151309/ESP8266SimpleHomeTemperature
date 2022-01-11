@@ -6,8 +6,6 @@
 #include "Files.h"
 #include "Logging.h"
 
-//TODO: open ap after too many failed connects
-
 Routes::Routes(ESP8266WebServer* webServer) {
   server = webServer;
   shouldRestart = false;
@@ -23,7 +21,7 @@ void Routes::handleRoot() {
     200, 
     "text/html",
     F(
-      "<!doctype html><html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'></head><body>"
+      "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Settings</h1>"
       "<p>Welcome to your ESP8266! What do you want to do?</p>"
       "<nav><ul><li><a href='/wifi'>Configure WiFi</a></li><li><a href='/room-name'>Change Room Name</a></li></ul></nav>"
@@ -39,9 +37,10 @@ void Routes::handleWiFi() {
 
   String page;
   page += F(
-            "<!doctype html><html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'></head><body>"
+            "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>WiFi Configuration</h1>"
-            "<h2>Available Networks</h2><ul>"
+            "<h2>Available Networks</h2>"
+            "<ul>"
           );
   int n = WiFi.scanNetworks();
   if (n > 0) {
@@ -55,9 +54,10 @@ void Routes::handleWiFi() {
             "</ul>"
             "<h2>Connect to a Network</h2>"
             "<form method='POST' action='wifi-save'>"
-            "<input type='text' placeholder='SSID' name='ssid' required /><br>"
-            "<input type='password' placeholder='Password' name='password' required /><br>"
-            "<input type='submit' value='Connect'/></form>"
+            "<input type='text' placeholder='SSID' name='ssid' required />"
+            "<input type='password' placeholder='Password' name='password' required />"
+            "<input type='submit' value='Connect'/>"
+            "</form>"
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
@@ -84,7 +84,7 @@ void Routes::handleRoomName() {
 
   String page;
   page += F(
-            "<!doctype html><html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'></head><body>"
+            "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>Room Name</h1>"
             "<p>The current room name is &ldquo;"
           );
@@ -93,8 +93,9 @@ void Routes::handleRoomName() {
             "&rdquo;.</p>"
             "<h2>Change Room Name</h2>"
             "<form method='POST' action='room-name-save'>"
-            "<input type='text' placeholder='Room Name' name='name' required /><br>"
-            "<input type='submit' value='Change'/></form>"
+            "<input type='text' placeholder='Room Name' name='name' required />"
+            "<input type='submit' value='Change'/>"
+            "</form>"
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
@@ -115,7 +116,7 @@ void Routes::handleSuccess() {
     200, 
     "text/html",
     F(
-      "<!doctype html><html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'></head><body>"
+      "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Success</h1>"
       "<p>Updated settings successfully!</p>"
       "<p>You may want to <a href='/'>return to the home page</a>.</p>"
@@ -132,6 +133,22 @@ void Routes::handleCommand() {
     "application/json",
     "{\"toast\":\"Online!\"}"
   );
+}
+
+void Routes::handleCss() {
+  server->send(
+    200, 
+    "text/css",
+    F(
+      ":root { font-family: sans-serif; line-height: 1.5; }"
+      "* { box-sizing: border-box; font-weight: normal; }"
+      "body { max-width: 480px; margin: auto; padding: 16px; }"
+      "p, li { color: rgba(0, 0, 0, .6); }"
+      "input { display: block; width: 100%; margin: 8px 0; }"
+    )
+  );
+  delay(3000);
+  if (shouldRestart) ESP.restart();
 }
 
 void Routes::handleNotFound() {

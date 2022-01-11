@@ -39,6 +39,7 @@ void setup() {
   server.on("/commands", handleCommands);
   server.on("/temperature", std::bind(&Routes::handleCommand, routes));
   server.on("/humidity", std::bind(&Routes::handleCommand, routes));
+  server.on("/css", std::bind(&Routes::handleCss, routes));
   server.onNotFound(std::bind(&Routes::handleNotFound, routes));
   server.begin();
 }
