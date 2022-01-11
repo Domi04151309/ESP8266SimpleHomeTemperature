@@ -1,5 +1,7 @@
 #include "Routes.h"
 
+#include <Arduino.h>
+#include <ESP.h>
 #include <ESP8266WiFi.h>
 #include "Files.h"
 #include "Logging.h"
@@ -8,10 +10,12 @@
 
 Routes::Routes(ESP8266WebServer* webServer) {
   server = webServer;
-  log("Current settings");
+  shouldRestart = false;
+  log("---Current settings---");
   log(readFromFile("ssid"));
   log(readFromFile("password"));
   log(readFromFile("room_name"));
+  log("---------END----------");
 }
 
 void Routes::handleRoot() {
@@ -61,6 +65,7 @@ void Routes::handleWiFi() {
 }
 
 void Routes::handleWiFiSave() {
+  shouldRestart = true;
   char ssid[32] = "";
   char password[32] = "";
   server->arg("ssid").toCharArray(ssid, sizeof(ssid) - 1);
@@ -117,6 +122,8 @@ void Routes::handleSuccess() {
       "</body></html>"
     )
   );
+  delay(3000);
+  if (shouldRestart) ESP.restart();
 }
 
 void Routes::handleNotFound() {
