@@ -18,11 +18,15 @@ int cycle = 0;
 #endif
 
 void setup() {
-  delay(1000);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, 0);
+  
   #ifdef LOGGING
   Serial.begin(9600);
   #endif
   LittleFS.begin();
+  dht.begin();
+  
   delay(1000);
 
   //Configuring AP
@@ -42,6 +46,8 @@ void setup() {
   server.on("/css", std::bind(&Routes::handleCss, routes));
   server.onNotFound(std::bind(&Routes::handleNotFound, routes));
   server.begin();
+  
+  digitalWrite(LED_BUILTIN, 1);
 }
 
 void loop() {
