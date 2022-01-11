@@ -12,6 +12,7 @@ class Routes {
     void handleRoomName();
     void handleRoomNameSave();
     void handleSuccess();
+    void handleCommand();
     void handleNotFound();
   private:
     ESP8266WebServer* server;

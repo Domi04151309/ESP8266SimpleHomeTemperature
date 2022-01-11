@@ -126,6 +126,14 @@ void Routes::handleSuccess() {
   if (shouldRestart) ESP.restart();
 }
 
+void Routes::handleCommand() {
+  server->send(
+    200, 
+    "application/json",
+    "{\"toast\":\"Online!\"}"
+  );
+}
+
 void Routes::handleNotFound() {
   server->send(404, "text/plain", "404");
 }
