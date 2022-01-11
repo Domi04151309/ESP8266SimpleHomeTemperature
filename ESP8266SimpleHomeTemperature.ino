@@ -1,3 +1,5 @@
+#include <ESP.h>
+#include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 #include <DHT_U.h>
@@ -56,12 +58,15 @@ void loop() {
   #ifdef LOGGING
   if (cycle % 100 == 0) {
     char* logMessage = (char*) malloc(sizeof(char) * 64);
-    uint32_t freeHeap = ESP.getFreeHeap();
-    sprintf(logMessage, "Heap Usage:       %d %%", (freeHeap * 100) / 64000 * (-1) + 100);
+    sprintf(logMessage, "WiFi Status:        %s", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected");
     log(logMessage);
-    sprintf(logMessage, "Last Temperature: %g °C", temperature);
+    sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
     log(logMessage);
-    sprintf(logMessage, "Last Humidity:    %g %%\n", humidity);
+    sprintf(logMessage, "Heap Fragmentation: %d %%", ESP.getHeapFragmentation());
+    log(logMessage);
+    sprintf(logMessage, "Last Temperature:   %g °C", temperature);
+    log(logMessage);
+    sprintf(logMessage, "Last Humidity:      %g %%\n", humidity);
     log(logMessage);
     free(logMessage);
     cycle = 0;
@@ -95,7 +100,8 @@ void handleCommands() {
     humidity,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName)
   );
-  
+
+  server.sendHeader("Connection", "close");
   server.send(200, "application/json", message);
   free(roomName);
   free(message);

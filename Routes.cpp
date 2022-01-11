@@ -13,6 +13,7 @@ Routes::Routes(ESP8266WebServer* webServer) {
 }
 
 void Routes::handleRoot() {
+  server->sendHeader("Connection", "close");
   server->send(
     200, 
     "text/html",
@@ -30,6 +31,7 @@ void Routes::handleWiFi() {
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
+  server->sendHeader("Connection", "close");
   
   char* ssid = readFromFile("ssid");
   String page;
@@ -73,6 +75,7 @@ void Routes::handleWiFiSave() {
   server->arg("ssid").toCharArray(ssid, sizeof(ssid) - 1);
   server->arg("password").toCharArray(password, sizeof(password) - 1);
   server->sendHeader("Location", "/success", true);
+  server->sendHeader("Connection", "close");
   server->send(302, "text/plain", "Redirect");
   log("Changed wifi config");
   writeToFile("ssid", ssid);
@@ -83,6 +86,7 @@ void Routes::handleRoomName() {
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
+  server->sendHeader("Connection", "close");
 
   char* roomName = readFromFile("room_name");
   String page;
@@ -114,12 +118,14 @@ void Routes::handleRoomNameSave() {
   char roomName[32] = "";
   server->arg("name").toCharArray(roomName, sizeof(roomName) - 1);
   server->sendHeader("Location", "/success", true);
+  server->sendHeader("Connection", "close");
   server->send(302, "text/plain", "Redirect");
   log("Changed room name");
   writeToFile("room_name", roomName);
 }
 
 void Routes::handleSuccess() {
+  server->sendHeader("Connection", "close");
   server->send(
     200, 
     "text/html",
@@ -136,14 +142,18 @@ void Routes::handleSuccess() {
 }
 
 void Routes::handleCommand() {
+  server->sendHeader("Connection", "close");
   server->send(
     200, 
     "application/json",
-    "{\"toast\":\"Online!\"}"
+    F(
+      "{\"toast\":\"Online!\"}"
+    )
   );
 }
 
 void Routes::handleCss() {
+  server->sendHeader("Connection", "close");
   server->send(
     200, 
     "text/css",
