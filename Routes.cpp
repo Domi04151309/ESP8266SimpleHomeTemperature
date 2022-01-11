@@ -13,10 +13,10 @@ Routes::Routes(ESP8266WebServer* webServer) {
 }
 
 void Routes::handleRoot() {
-  server->sendHeader("Connection", "close");
+  server->keepAlive(false);
   server->send(
     200, 
-    "text/html",
+    MIME_HTML,
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Settings</h1>"
@@ -29,9 +29,8 @@ void Routes::handleRoot() {
 
 void Routes::handleWiFi() {
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
-  server->sendHeader("Connection", "close");
+  server->sendHeader("Expires", "0");
+  server->keepAlive(false);
   
   char* ssid = readFromFile("ssid");
   String page;
@@ -66,7 +65,7 @@ void Routes::handleWiFi() {
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
-  server->send(200, "text/html", page);
+  server->send(200, MIME_HTML, page);
   free(ssid);
 }
 
@@ -77,7 +76,7 @@ void Routes::handleWiFiSave() {
   server->arg("ssid").toCharArray(ssid, sizeof(ssid) - 1);
   server->arg("password").toCharArray(password, sizeof(password) - 1);
   server->sendHeader("Location", "/success", true);
-  server->sendHeader("Connection", "close");
+  server->keepAlive(false);
   server->send(302, "text/plain", "Redirect");
   log("Changed wifi config");
   writeToFile("ssid", ssid);
@@ -86,9 +85,8 @@ void Routes::handleWiFiSave() {
 
 void Routes::handleRoomName() {
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Pragma", "no-cache");
-  server->sendHeader("Expires", "-1");
-  server->sendHeader("Connection", "close");
+  server->sendHeader("Expires", "0");
+  server->keepAlive(false);
 
   char* roomName = readFromFile("room_name");
   String page;
@@ -112,7 +110,7 @@ void Routes::handleRoomName() {
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
-  server->send(200, "text/html", page);
+  server->send(200, MIME_HTML, page);
   free(roomName);
 }
 
@@ -120,17 +118,17 @@ void Routes::handleRoomNameSave() {
   char roomName[32] = "";
   server->arg("name").toCharArray(roomName, sizeof(roomName) - 1);
   server->sendHeader("Location", "/success", true);
-  server->sendHeader("Connection", "close");
+  server->keepAlive(false);
   server->send(302, "text/plain", "Redirect");
   log("Changed room name");
   writeToFile("room_name", roomName);
 }
 
 void Routes::handleSuccess() {
-  server->sendHeader("Connection", "close");
+  server->keepAlive(false);
   server->send(
     200, 
-    "text/html",
+    MIME_HTML,
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Success</h1>"
@@ -144,10 +142,10 @@ void Routes::handleSuccess() {
 }
 
 void Routes::handleCommand() {
-  server->sendHeader("Connection", "close");
+  server->keepAlive(false);
   server->send(
     200, 
-    "application/json",
+    F("application/json"),
     F(
       "{\"toast\":\"Online!\"}"
     )
@@ -155,10 +153,10 @@ void Routes::handleCommand() {
 }
 
 void Routes::handleCss() {
-  server->sendHeader("Connection", "close");
+  server->keepAlive(false);
   server->send(
     200, 
-    "text/css",
+    F("text/css"),
     F(
       ":root { font-family: sans-serif; line-height: 1.5; }"
       "* { box-sizing: border-box; font-weight: normal; }"
@@ -172,5 +170,16 @@ void Routes::handleCss() {
 }
 
 void Routes::handleNotFound() {
-  server->send(404, "text/plain", "404");
+  server->keepAlive(false);
+  server->send(
+    404, 
+    MIME_HTML,
+    F(
+      "<!doctype html><html>" HTML_HEAD "<body>"
+      "<h1>404</h1>"
+      "<p>Not found!</p>"
+      "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+      "</body></html>"
+    )
+  );
 }
