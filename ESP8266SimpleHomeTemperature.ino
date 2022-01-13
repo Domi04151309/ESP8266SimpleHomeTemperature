@@ -53,7 +53,9 @@ void setup() {
   server.on(F("/humidity"), HTTP_GET, std::bind(&Routes::handleCommand, routes));
   server.on(F("/css"), HTTP_GET, std::bind(&Routes::handleCss, routes));
   server.on(F("/description.xml"), HTTP_GET, []() {
-    SSDP.schema(server.client());
+    WiFiClient client = server.client();
+    SSDP.schema(client);
+    client.stop();
   });
   server.onNotFound(std::bind(&Routes::handleNotFound, routes));
   server.begin();
@@ -80,8 +82,8 @@ void loop() {
 
   #ifdef LOGGING
   if ((cycle * LOOP_DELAY) / LOGGING_INTERVAL >= 1) {
-    char* logMessage = (char*) malloc(sizeof(char) * 64);
-    sprintf(logMessage, "WiFi Status:        %s", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected");
+    char* logMessage = (char*) malloc(sizeof(char) * 64);   
+    sprintf(logMessage, "WiFi Status:        %s (%d %%)", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()));
     log(logMessage);
     sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
     log(logMessage);
