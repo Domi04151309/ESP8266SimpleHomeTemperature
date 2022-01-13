@@ -1,5 +1,6 @@
 #include "Routes.h"
 
+#include <cstdint>
 #include <Arduino.h>
 #include <ESP.h>
 #include <ESP8266WiFi.h>
@@ -40,9 +41,9 @@ void Routes::handleWiFi() {
             "<h2>Available Networks</h2>"
             "<ul>"
           );
-  byte n = WiFi.scanNetworks();
+  uint8_t n = WiFi.scanNetworks();
   if (n > 0) {
-    for (byte i = 0; i < n; i++) {
+    for (uint8_t i = 0; i < n; i++) {
       page += F("<li>");
       page += WiFi.SSID(i);
       page += F("</li>");

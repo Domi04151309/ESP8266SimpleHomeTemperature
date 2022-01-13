@@ -22,7 +22,7 @@ void configureNetwork() {
     WiFi.begin(ssid, password);
     free(roomName);
     free(customHostname);
-    for (byte i = 0; i < 50 && WiFi.status() != WL_CONNECTED; i++) delay(100);
+    for (uint8_t i = 0; i < 50 && WiFi.status() != WL_CONNECTED; i++) delay(100);
     if (WiFi.status() != WL_CONNECTED) {
       log("Failed to connect");
       WiFi.disconnect();
@@ -51,4 +51,10 @@ void startAP() {
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(AP_SSID, AP_PASSWORD);
+}
+
+uint8_t RSSIToPercent(long rssi) {
+  if (rssi >= -50) return 100;
+  else if (rssi <= -100) return 0;
+  else return (rssi + 100) * 2;
 }
