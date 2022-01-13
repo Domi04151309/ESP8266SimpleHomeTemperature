@@ -6,6 +6,7 @@
 
 #include <ESP.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266Ping.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266SSDP.h>
 #include <LittleFS.h>
@@ -18,12 +19,9 @@
 ESP8266WebServer server(80);
 DHT_Unified dht(4, DHT22);
 
+unsigned int cycle = 0;
 float temperature = 0;
 float humidity = 0;
-
-#ifdef LOGGING
-unsigned int cycle = 0;
-#endif
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -79,21 +77,23 @@ void setup() {
 
 void loop() {
   server.handleClient();
-
-  #ifdef LOGGING
-  if ((cycle * LOOP_DELAY) / LOGGING_INTERVAL >= 1) {
+  
+  if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) { 
+    cycle = 0;
+    bool networkAccess = Ping.ping(WiFi.gatewayIP(), 1);
+    
+    #ifdef LOGGING
     char* logMessage = (char*) malloc(sizeof(char) * 64);   
-    sprintf(logMessage, "WiFi Status:        %s (%d %%)", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()));
+    sprintf(logMessage, "WiFi Status:        %s (%d %%) %s", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()), networkAccess ? "" : "without access");
     log(logMessage);
     sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
     log(logMessage);
     sprintf(logMessage, "Heap Fragmentation: %d %%\n", ESP.getHeapFragmentation());
     log(logMessage);
     free(logMessage);
-    cycle = 0;
+    #endif
   }
   cycle++;
-  #endif
   
   delay(LOOP_DELAY);
 }
