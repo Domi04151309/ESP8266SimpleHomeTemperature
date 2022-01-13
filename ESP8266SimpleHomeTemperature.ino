@@ -1,13 +1,19 @@
+#include "Config.h"
+
+#ifdef LOGGING
+  #define DEBUG_ESP_HTTP_SERVER
+#endif
+
 #include <ESP.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266SSDP.h>
 #include <LittleFS.h>
 #include <DHT_U.h>
 #include "Connectivity.h"
 #include "Routes.h"
 #include "Files.h"
 #include "Logging.h"
-#include "Config.h"
 
 ESP8266WebServer server(80);
 DHT_Unified dht(4, DHT22);
@@ -36,18 +42,35 @@ void setup() {
 
   //Add routes
   Routes routes(&server);
-  server.on("/", std::bind(&Routes::handleRoot, routes));
-  server.on("/wifi", std::bind(&Routes::handleWiFi, routes));
-  server.on("/wifi-save", std::bind(&Routes::handleWiFiSave, routes));
-  server.on("/room-name", std::bind(&Routes::handleRoomName, routes));
-  server.on("/room-name-save", std::bind(&Routes::handleRoomNameSave, routes));
-  server.on("/success", std::bind(&Routes::handleSuccess, routes));
-  server.on("/commands", handleCommands);
-  server.on("/temperature", std::bind(&Routes::handleCommand, routes));
-  server.on("/humidity", std::bind(&Routes::handleCommand, routes));
-  server.on("/css", std::bind(&Routes::handleCss, routes));
+  server.on(F("/"), HTTP_GET, std::bind(&Routes::handleRoot, routes));
+  server.on(F("/wifi"), HTTP_GET, std::bind(&Routes::handleWiFi, routes));
+  server.on(F("/wifi-save"), HTTP_GET, std::bind(&Routes::handleWiFiSave, routes));
+  server.on(F("/room-name"), HTTP_GET, std::bind(&Routes::handleRoomName, routes));
+  server.on(F("/room-name-save"), HTTP_GET, std::bind(&Routes::handleRoomNameSave, routes));
+  server.on(F("/success"), HTTP_GET, std::bind(&Routes::handleSuccess, routes));
+  server.on(F("/commands"), HTTP_GET, handleCommands);
+  server.on(F("/temperature"), HTTP_GET, std::bind(&Routes::handleCommand, routes));
+  server.on(F("/humidity"), HTTP_GET, std::bind(&Routes::handleCommand, routes));
+  server.on(F("/css"), HTTP_GET, std::bind(&Routes::handleCss, routes));
+  server.on(F("/description.xml"), HTTP_GET, []() {
+    SSDP.schema(server.client());
+  });
   server.onNotFound(std::bind(&Routes::handleNotFound, routes));
   server.begin();
+
+  //Service Discovery
+  SSDP.setSchemaURL(F("description.xml"));
+  SSDP.setHTTPPort(80);
+  SSDP.setName(F("Thermometer"));
+  SSDP.setSerialNumber(F("0"));
+  SSDP.setURL(F("commands"));
+  SSDP.setModelName(F("SimpleHome"));
+  SSDP.setModelNumber(F("0"));
+  SSDP.setModelURL(F("https://github.com/Domi04151309/HomeApp"));
+  SSDP.setManufacturer(F("none"));
+  SSDP.setManufacturerURL(F("about:blank"));
+  SSDP.setDeviceType(F("upnp:rootdevice"));
+  SSDP.begin();
   
   digitalWrite(LED_BUILTIN, 1);
 }
@@ -90,16 +113,15 @@ void handleCommands() {
   char* message = (char*) malloc(sizeof(char) * 256);
   sprintf(
     message, 
-    "{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\"}}}",
+    "{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}}}",
     temperature,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     humidity,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName)
   );
 
-  server.sendHeader("Connection", "close");
-  server.send(200, "application/json", message);
+  server.keepAlive(false);
+  server.send(200, F("application/json"), message);
   free(roomName);
   free(message);
-  log("Requested commands");
 }
