@@ -17,13 +17,14 @@ class Routes {
     void handleRoomName();
     void handleRoomNameSave();
     void handleSuccess();
+    void handleRequestRestart();
     void handleStatus();
     void handleCommand();
     void handleCss();
     void handleNotFound();
+    static bool shouldRestart;
   private:
     ESP8266WebServer* server;
-    bool shouldRestart;
 };
 
 #endif

@@ -1,7 +1,7 @@
 #include "Config.h"
 
 #ifdef LOGGING
-  #define DEBUG_ESP_HTTP_SERVER
+  //#define DEBUG_ESP_HTTP_SERVER
 #endif
 
 #include <ESP.h>
@@ -44,10 +44,11 @@ void setup() {
   server.on(F("/wifi"), HTTP_GET, std::bind(&Routes::handleWiFi, routes));
   server.on(F("/wifi-script"), HTTP_GET, std::bind(&Routes::handleWiFiScript, routes));
   server.on(F("/wifi-result"), HTTP_GET, std::bind(&Routes::handleWiFiResult, routes));
-  server.on(F("/wifi-save"), HTTP_GET, std::bind(&Routes::handleWiFiSave, routes));
+  server.on(F("/wifi-save"), HTTP_ANY, std::bind(&Routes::handleWiFiSave, routes));
   server.on(F("/room-name"), HTTP_GET, std::bind(&Routes::handleRoomName, routes));
-  server.on(F("/room-name-save"), HTTP_GET, std::bind(&Routes::handleRoomNameSave, routes));
+  server.on(F("/room-name-save"), HTTP_ANY, std::bind(&Routes::handleRoomNameSave, routes));
   server.on(F("/success"), HTTP_GET, std::bind(&Routes::handleSuccess, routes));
+  server.on(F("/request-restart"), HTTP_GET, std::bind(&Routes::handleRequestRestart, routes));
   server.on(F("/status"), HTTP_GET, std::bind(&Routes::handleStatus, routes));
   server.on(F("/commands"), HTTP_GET, handleCommands);
   server.on(F("/temperature"), HTTP_GET, std::bind(&Routes::handleCommand, routes));

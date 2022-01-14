@@ -11,8 +11,9 @@
 
 Routes::Routes(ESP8266WebServer* webServer) {
   server = webServer;
-  shouldRestart = false;
 }
+
+bool Routes::shouldRestart = false;
 
 void Routes::handleRoot() {
   server->keepAlive(false);
@@ -110,7 +111,7 @@ void Routes::handleWiFiResult() {
 }
 
 void Routes::handleWiFiSave() {
-  shouldRestart = true;
+  Routes::shouldRestart = true;
   char ssid[32] = "";
   char password[32] = "";
   server->arg("ssid").toCharArray(ssid, sizeof(ssid) - 1);
@@ -160,8 +161,8 @@ void Routes::handleRoomNameSave() {
   server->sendHeader("Location", "/success", true);
   server->keepAlive(false);
   server->send(302, "text/plain", "Redirect");
-  log("Changed room name");
   writeToFile("room_name", roomName);
+  log("Changed room name");
 }
 
 void Routes::handleSuccess() {
@@ -174,11 +175,19 @@ void Routes::handleSuccess() {
       "<h1>Success</h1>"
       "<p>Updated settings successfully!</p>"
       "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+      "<script src='/request-restart' defer></script>"
       "</body></html>"
     )
   );
-  delay(3000);
-  if (shouldRestart) ESP.restart();
+}
+
+void Routes::handleRequestRestart() {
+  server->keepAlive(false);
+  server->send(200, F("text/javascript"), F("console.log('Restarting');"));
+  if (Routes::shouldRestart) {
+    delay(2000);
+    ESP.restart();
+  }
 }
 
 void Routes::handleStatus() {
@@ -245,8 +254,6 @@ void Routes::handleCss() {
       "input { display: block; width: 100%; margin: 8px 0; }"
     )
   );
-  delay(3000);
-  if (shouldRestart) ESP.restart();
 }
 
 void Routes::handleNotFound() {
