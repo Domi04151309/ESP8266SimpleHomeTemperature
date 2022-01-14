@@ -36,20 +36,7 @@ void Routes::handleWiFi() {
             "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>WiFi Configuration</h1>"
             "<h2>Available Networks</h2>"
-            "<ul>"
-          );
-  uint8_t n = WiFi.scanNetworks();
-  if (n > 0) {
-    for (uint8_t i = 0; i < n; i++) {
-      page += F("<li>");
-      page += WiFi.SSID(i);
-      page += F("</li>");
-    }
-  } else {
-    page += F("<li>No networks found</li>");
-  }
-  page += F(
-            "</ul>"
+            "<ul id='list'><li>Loading</li></ul>"
             "<h2>Connect to a Network</h2>"
             "<form method='POST' action='wifi-save'>"
             "<input type='text' placeholder='SSID' name='ssid' value='"
@@ -61,6 +48,7 @@ void Routes::handleWiFi() {
             "<input type='submit' value='Connect' />"
             "</form>"
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+            "<script src='/wifi-script' defer></script>"
             "</body></html>"
           );
           
@@ -69,6 +57,56 @@ void Routes::handleWiFi() {
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
   free(ssid);
+}
+
+void Routes::handleWiFiScript() {
+  server->keepAlive(false);
+  server->send(
+    200, 
+    F("text/javascript"),
+    F( 
+      "const list = document.getElementById('list');"
+      "loadNetworks();"
+      "function loadNetworks() {"
+        "fetch('/wifi-result').then(response => {"
+          "if (!response.ok) console.error(response.status);"
+          "else return response.json();"
+        "}).then(json => {"
+          "list.innerHTML = '';"
+          "json.forEach(element => appendItem(element));"
+        "}).catch(error => {"
+          "console.error(error);"
+          "list.innerHTML = '';"
+          "appendItem('An error occurred');"
+        "});"
+      "}"
+      "function appendItem(text) {"
+        "const li = document.createElement('li');"
+        "li.appendChild(document.createTextNode(text));"
+        "list.appendChild(li);"
+      "}"
+    )
+  );
+}
+
+void Routes::handleWiFiResult() {
+  String page;
+  page += F("[");
+  uint8_t n = WiFi.scanNetworks();
+  if (n > 0) {
+    for (uint8_t i = 0; i < n; i++) {
+      page += '"';
+      page += WiFi.SSID(i);
+      page += '"';
+      if (i != n - 1) page += ',';
+    }
+  } else {
+    page += F("\"No networks found\"");
+  }
+  page += F("]");
+  
+  server->keepAlive(false);
+  server->send(200, F("application/json"), page);
 }
 
 void Routes::handleWiFiSave() {

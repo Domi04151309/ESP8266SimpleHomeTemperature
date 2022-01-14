@@ -11,6 +11,8 @@ class Routes {
     Routes(ESP8266WebServer* webServer);
     void handleRoot();
     void handleWiFi();
+    void handleWiFiScript();
+    void handleWiFiResult();
     void handleWiFiSave();
     void handleRoomName();
     void handleRoomNameSave();

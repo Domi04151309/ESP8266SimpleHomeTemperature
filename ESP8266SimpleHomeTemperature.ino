@@ -42,6 +42,8 @@ void setup() {
   Routes routes(&server);
   server.on(F("/"), HTTP_GET, std::bind(&Routes::handleRoot, routes));
   server.on(F("/wifi"), HTTP_GET, std::bind(&Routes::handleWiFi, routes));
+  server.on(F("/wifi-script"), HTTP_GET, std::bind(&Routes::handleWiFiScript, routes));
+  server.on(F("/wifi-result"), HTTP_GET, std::bind(&Routes::handleWiFiResult, routes));
   server.on(F("/wifi-save"), HTTP_GET, std::bind(&Routes::handleWiFiSave, routes));
   server.on(F("/room-name"), HTTP_GET, std::bind(&Routes::handleRoomName, routes));
   server.on(F("/room-name-save"), HTTP_GET, std::bind(&Routes::handleRoomNameSave, routes));
