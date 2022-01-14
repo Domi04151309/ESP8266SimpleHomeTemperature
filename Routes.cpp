@@ -116,12 +116,21 @@ void Routes::handleWiFiSave() {
   char password[32] = "";
   server->arg("ssid").toCharArray(ssid, sizeof(ssid) - 1);
   server->arg("password").toCharArray(password, sizeof(password) - 1);
-  server->sendHeader("Location", "/success", true);
   server->keepAlive(false);
-  server->send(302, "text/plain", "Redirect");
-  log("Changed wifi config");
+  server->send(
+    200, 
+    MIME_HTML,
+    F(
+      "<!doctype html><html>" HTML_HEAD "<body>"
+      "<h1>Success</h1>"
+      "<p>Updated WiFi settings successfully! Your device will restart now!</p>"
+      "<script src='/request-restart' defer></script>"
+      "</body></html>"
+    )
+  );
   writeToFile("ssid", ssid);
   writeToFile("password", password);
+  log("Changed wifi config");
 }
 
 void Routes::handleRoomName() {
@@ -158,14 +167,6 @@ void Routes::handleRoomName() {
 void Routes::handleRoomNameSave() {
   char roomName[32] = "";
   server->arg("name").toCharArray(roomName, sizeof(roomName) - 1);
-  server->sendHeader("Location", "/success", true);
-  server->keepAlive(false);
-  server->send(302, "text/plain", "Redirect");
-  writeToFile("room_name", roomName);
-  log("Changed room name");
-}
-
-void Routes::handleSuccess() {
   server->keepAlive(false);
   server->send(
     200, 
@@ -173,12 +174,13 @@ void Routes::handleSuccess() {
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Success</h1>"
-      "<p>Updated settings successfully!</p>"
+      "<p>Updated the room name successfully!</p>"
       "<p>You may want to <a href='/'>return to the home page</a>.</p>"
-      "<script src='/request-restart' defer></script>"
       "</body></html>"
     )
   );
+  writeToFile("room_name", roomName);
+  log("Changed room name");
 }
 
 void Routes::handleRequestRestart() {
