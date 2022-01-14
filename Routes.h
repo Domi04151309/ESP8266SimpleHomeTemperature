@@ -15,6 +15,7 @@ class Routes {
     void handleRoomName();
     void handleRoomNameSave();
     void handleSuccess();
+    void handleStatus();
     void handleCommand();
     void handleCss();
     void handleNotFound();

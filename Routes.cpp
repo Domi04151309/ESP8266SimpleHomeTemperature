@@ -5,6 +5,7 @@
 #include <ESP.h>
 #include <ESP8266WiFi.h>
 #include "Files.h"
+#include "Connectivity.h"
 #include "Logging.h"
 #include "Config.h"
 
@@ -22,17 +23,13 @@ void Routes::handleRoot() {
       "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Settings</h1>"
       "<p>Welcome to your ESP8266! What do you want to do?</p>"
-      "<nav><ul><li><a href='/wifi'>Configure WiFi</a></li><li><a href='/room-name'>Change Room Name</a></li></ul></nav>"
+      "<nav><ul><li><a href='/wifi'>Configure WiFi</a></li><li><a href='/room-name'>Change Room Name</a></li><li><a href='/status'>View the device's status</a></li></ul></nav>"
       "</body></html>"
     )
   );
 }
 
 void Routes::handleWiFi() {
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Expires", "0");
-  server->keepAlive(false);
-  
   char* ssid = readFromFile("ssid");
   String page;
   page += F(
@@ -66,6 +63,10 @@ void Routes::handleWiFi() {
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
+          
+  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server->sendHeader("Expires", "0");
+  server->keepAlive(false);
   server->send(200, MIME_HTML, page);
   free(ssid);
 }
@@ -85,10 +86,6 @@ void Routes::handleWiFiSave() {
 }
 
 void Routes::handleRoomName() {
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Expires", "0");
-  server->keepAlive(false);
-
   char* roomName = readFromFile("room_name");
   String page;
   page += F(
@@ -111,6 +108,10 @@ void Routes::handleRoomName() {
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
+          
+  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server->sendHeader("Expires", "0");
+  server->keepAlive(false);
   server->send(200, MIME_HTML, page);
   free(roomName);
 }
@@ -140,6 +141,46 @@ void Routes::handleSuccess() {
   );
   delay(3000);
   if (shouldRestart) ESP.restart();
+}
+
+void Routes::handleStatus() {
+  String page;
+  page += F(
+            "<!doctype html><html>" HTML_HEAD "<body>"
+            "<h1>Status</h1>"
+            "<ul>"
+            "<li>WiFi: "
+          );
+  page += WiFi.status() == WL_CONNECTED ? WiFi.SSID() : "Disconnected";
+  page += F(
+            "</li>"
+            "<li>Signal Strength: "
+          );
+  page += RSSIToPercent(WiFi.RSSI());
+  page += F(
+            " %</li>"
+            "<li>RAM Usage: "
+          );
+  page += (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100;
+  page += F(
+            " %</li>"
+            "<li>RAM Fragmentation: "
+          );
+  page += ESP.getHeapFragmentation();
+  page += F(
+            " %</li>"
+            #ifdef LOGGING
+            "<li>LOGGING IS ENABLED</li>"
+            #endif
+            "</ul>"
+            "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+            "</body></html>"
+          );
+          
+  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server->sendHeader("Expires", "0");
+  server->keepAlive(false);
+  server->send(200, MIME_HTML, page);
 }
 
 void Routes::handleCommand() {
