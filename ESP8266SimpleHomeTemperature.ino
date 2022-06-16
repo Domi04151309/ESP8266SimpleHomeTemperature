@@ -1,7 +1,9 @@
 #include "Config.h"
 
 #ifdef LOGGING
-  //#define DEBUG_ESP_HTTP_SERVER
+  #define DEBUG_ESP_HTTP_SERVER
+  #define ENABLE_DEBUG_PING
+  #define DHT_DEBUG
 #endif
 
 #include <ESP.h>
@@ -26,13 +28,13 @@ float humidity = 0;
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, 0);
-  
+
   #ifdef LOGGING
   Serial.begin(9600);
   #endif
   LittleFS.begin();
   dht.begin();
-  
+
   delay(1000);
 
   //Configuring AP
@@ -74,19 +76,19 @@ void setup() {
   SSDP.setManufacturerURL(F("about:blank"));
   SSDP.setDeviceType(F("upnp:rootdevice"));
   SSDP.begin();
-  
+
   digitalWrite(LED_BUILTIN, 1);
 }
 
 void loop() {
   server.handleClient();
-  
-  if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) { 
+
+  if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) {
     cycle = 0;
     bool networkAccess = Ping.ping(WiFi.gatewayIP());
-    
+
     #ifdef LOGGING
-    char* logMessage = (char*) malloc(sizeof(char) * 64);   
+    char* logMessage = (char*) malloc(sizeof(char) * 64);
     sprintf(logMessage, "WiFi Status:        %s (%d %%) %s", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()), networkAccess ? "" : "without access");
     log(logMessage);
     sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
@@ -97,27 +99,27 @@ void loop() {
     #endif
   }
   cycle++;
-  
+
   delay(LOOP_DELAY);
 }
 
 void handleCommands() {
   sensors_event_t event;
-  
+
   dht.temperature().getEvent(&event);
   if (!isnan(event.temperature)) {
     temperature = event.temperature;
   }
-  
+
   dht.humidity().getEvent(&event);
   if (!isnan(event.relative_humidity)) {
     humidity = event.relative_humidity;
   }
-  
+
   char* roomName = readFromFile("room_name");
   char* message = (char*) malloc(sizeof(char) * 256);
   sprintf(
-    message, 
+    message,
     "{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}}}",
     temperature,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
