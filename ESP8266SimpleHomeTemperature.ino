@@ -10,7 +10,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266SSDP.h>
 #include <LittleFS.h>
-#include <DHT_U.h>
+#include "Mod_DHT_U.h"
 #include "Connectivity.h"
 #include "Routes.h"
 #include "Files.h"
