@@ -32,7 +32,7 @@ You can then continue like it's a fresh install.
 The device is ready as soon as the onboard LED turns off.
 
 ### Modified Libraries
-The `libs` folder includes modified versions of libraries to improve efficiency.
+The `src` folder includes modified versions of libraries to improve efficiency.
 
 ## Legal Notice
 Copyright (C) 2021 Domi04151309

@@ -18,7 +18,7 @@
 #ifndef DHT_H
 #define DHT_H
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 /* Setup debug printing macros. */
 #ifdef DHT_DEBUG
