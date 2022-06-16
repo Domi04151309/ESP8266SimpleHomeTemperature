@@ -6,7 +6,7 @@ char* readFromFile(const char* filename) {
   File file = LittleFS.open(filename, "r");
   if (!file) {
     char* result = (char*) malloc(sizeof(char));
-    sprintf(result, "");
+    result[0] = '\0';
     return result;
   }
   char* result = (char*) malloc(file.size() + sizeof(char));
