@@ -6,7 +6,7 @@
 
 #include <ESP.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266Ping.h>
+#include "libs/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
 #include <ESP8266SSDP.h>
 #include <LittleFS.h>
@@ -83,7 +83,7 @@ void loop() {
   
   if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) { 
     cycle = 0;
-    bool networkAccess = Ping.ping(WiFi.gatewayIP(), 1);
+    bool networkAccess = Ping.ping(WiFi.gatewayIP());
     
     #ifdef LOGGING
     char* logMessage = (char*) malloc(sizeof(char) * 64);   
