@@ -10,7 +10,7 @@
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
-#include <ESP8266SSDP.h>
+#include "src/Mod_ESP8266SSDP.h"
 #include <LittleFS.h>
 #include "src/Mod_DHT_U.h"
 #include "Connectivity.h"
@@ -64,17 +64,14 @@ void setup() {
   server.begin();
 
   //Service Discovery
-  SSDP.setSchemaURL(F("description.xml"));
-  SSDP.setHTTPPort(80);
-  SSDP.setName(F("Thermometer"));
-  SSDP.setSerialNumber(F("0"));
-  SSDP.setURL(F("commands"));
-  SSDP.setModelName(F("SimpleHome"));
-  SSDP.setModelNumber(F("0"));
-  SSDP.setModelURL(F("https://github.com/Domi04151309/HomeApp"));
-  SSDP.setManufacturer(F("none"));
-  SSDP.setManufacturerURL(F("about:blank"));
-  SSDP.setDeviceType(F("upnp:rootdevice"));
+  strcpy_P(SSDP.schemaURL, PSTR("description.xml"));
+  SSDP.port = 80;
+  strcpy_P(SSDP.friendlyName, PSTR("Thermometer"));
+  strcpy_P(SSDP.presentationURL, PSTR("status"));
+  strcpy_P(SSDP.modelName, PSTR("SimpleHome"));
+  strcpy_P(SSDP.modelNumber, PSTR("0"));
+  strcpy_P(SSDP.modelURL, PSTR("https://github.com/Domi04151309/HomeApp"));
+  strcpy_P(SSDP.deviceType, PSTR("upnp:rootdevice"));
   SSDP.begin();
 
   digitalWrite(LED_BUILTIN, 1);
@@ -118,9 +115,9 @@ void handleCommands() {
 
   char* roomName = readFromFile("room_name");
   char* message = (char*) malloc(sizeof(char) * 256);
-  sprintf(
+  sprintf_P(
     message,
-    "{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}}}",
+    PSTR("{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}}}"),
     temperature,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     humidity,
