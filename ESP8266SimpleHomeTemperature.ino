@@ -1,5 +1,7 @@
 #include "Config.h"
 
+#define DUMMY_IS_WEATHER_ENABLED true
+
 #ifdef LOGGING
   #define DEBUG_ESP_HTTP_SERVER
   #define ENABLE_DEBUG_PING
@@ -10,6 +12,7 @@
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
 #include "src/Mod_ESP8266SSDP.h"
 #include <LittleFS.h>
 #include "src/Mod_DHT.h"
@@ -24,6 +27,7 @@ DHT dht(4, DHT22);
 unsigned int cycle = 0;
 float temperature = 0;
 float humidity = 0;
+char* weather;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -74,6 +78,10 @@ void setup() {
   strcpy_P(SSDP.deviceType, PSTR("upnp:rootdevice"));
   SSDP.begin();
 
+  //Weather service
+  weather = (char*) malloc(sizeof(char) * 64);
+  strcpy_P(weather, PSTR("Unknown"));
+
   digitalWrite(LED_BUILTIN, 1);
 }
 
@@ -82,11 +90,22 @@ void loop() {
 
   if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) {
     cycle = 0;
-    bool networkAccess = Ping.ping(WiFi.gatewayIP());
+    if (DUMMY_IS_WEATHER_ENABLED) {
+      HTTPClient http;
+      WiFiClientSecure client;
+      client.setInsecure(); 
+      http.begin(client, "https://wttr.in/?T&format=%t+in+%l");
+      if (http.GET() == HTTP_CODE_OK) {
+        strcpy(weather, http.getString().c_str());
+      }
+      http.end();
+    } else {
+      Ping.ping(WiFi.gatewayIP());
+    }
 
     #ifdef LOGGING
     char* logMessage = (char*) malloc(sizeof(char) * 64);
-    sprintf(logMessage, "WiFi Status:        %s (%d %%) %s", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()), networkAccess ? "" : "without access");
+    sprintf(logMessage, "WiFi Status:        %s (%d %%)", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()));
     log(logMessage);
     sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
     log(logMessage);
@@ -114,15 +133,32 @@ void handleCommands() {
   }
 
   char* roomName = readFromFile("room_name");
-  char* message = (char*) malloc(sizeof(char) * 256);
+  char* message = (char*) malloc(sizeof(char) * 512);
   sprintf_P(
     message,
-    PSTR("{\"commands\":{\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}}}"),
+    PSTR(
+      "{"
+        "\"commands\":{"
+          "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},"
+          "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}"
+    ),
     temperature,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     humidity,
-    SAVED_OR_DEFAULT_ROOM_NAME(roomName)
+    SAVED_OR_DEFAULT_ROOM_NAME(roomName),
+    weather
   );
+  if (DUMMY_IS_WEATHER_ENABLED) {
+    sprintf_P(
+      message + strlen(message),
+      PSTR(
+        ","
+        "\"weather\":{\"icon\": \"gauge\",\"title\":\"Weather\",\"summary\":\"%s\", \"mode\": \"none\"}"
+      ),
+      weather
+    );
+  }
+  strcat_P(message, PSTR("}}"));
 
   server.keepAlive(false);
   server.send(200, F("application/json"), message);
