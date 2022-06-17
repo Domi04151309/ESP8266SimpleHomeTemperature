@@ -12,14 +12,14 @@
 #include <ESP8266WebServer.h>
 #include "src/Mod_ESP8266SSDP.h"
 #include <LittleFS.h>
-#include "src/Mod_DHT_U.h"
+#include "src/Mod_DHT.h"
 #include "Connectivity.h"
 #include "Routes.h"
 #include "Files.h"
 #include "Logging.h"
 
 ESP8266WebServer server(80);
-DHT_Unified dht(4, DHT22);
+DHT dht(4, DHT22);
 
 unsigned int cycle = 0;
 float temperature = 0;
@@ -101,16 +101,16 @@ void loop() {
 }
 
 void handleCommands() {
-  sensors_event_t event;
-
-  dht.temperature().getEvent(&event);
-  if (!isnan(event.temperature)) {
-    temperature = event.temperature;
+  float event;
+  
+  event = dht.readTemperature();
+  if (!isnan(event)) {
+    temperature = event;
   }
 
-  dht.humidity().getEvent(&event);
-  if (!isnan(event.relative_humidity)) {
-    humidity = event.relative_humidity;
+  event = dht.readHumidity();
+  if (!isnan(event)) {
+    humidity = event;
   }
 
   char* roomName = readFromFile("room_name");
