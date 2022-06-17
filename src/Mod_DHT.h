@@ -54,7 +54,7 @@ static const uint8_t DHT22{22};  /**< DHT TYPE 22 */
  */
 class DHT {
 public:
-  DHT(uint8_t pin, uint8_t type, uint8_t count = 6);
+  DHT(uint8_t pin, uint8_t type);
   void begin(uint8_t usec = 55);
   float readTemperature();
   float readHumidity();

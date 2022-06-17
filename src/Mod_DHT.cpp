@@ -36,11 +36,8 @@
  *          pin number that sensor is connected
  *  @param  type
  *          type of sensor
- *  @param  count
- *          number of sensors
  */
-DHT::DHT(uint8_t pin, uint8_t type, uint8_t count) {
-  (void)count; // Workaround to avoid compiler warning.
+DHT::DHT(uint8_t pin, uint8_t type) {
   _pin = pin;
   _type = type;
 #ifdef __AVR
@@ -50,8 +47,6 @@ DHT::DHT(uint8_t pin, uint8_t type, uint8_t count) {
   _maxcycles =
       microsecondsToClockCycles(1000); // 1 millisecond timeout for
                                        // reading pulses from DHT sensor.
-  // Note that count is now ignored as the DHT reading algorithm adjusts itself
-  // based on the speed of the processor.
 }
 
 /*!
