@@ -10,13 +10,13 @@ void configureNetwork() {
   char* ssid = readFromFile("ssid");
   char* password = readFromFile("password");
   wifi_set_sleep_type(NONE_SLEEP_T);
-  if (strlen(ssid) == 0 || strlen(password) == 0) {  
+  if (strlen(ssid) == 0 || strlen(password) == 0) {
     startAP();
   } else {
     log("Attempting to connect...");
     char* roomName = readFromFile("room_name");
     char* customHostname = (char*) malloc(sizeof(char) * 64);
-    sprintf(customHostname, "ESP8266-SimpleHome-%s", SAVED_OR_DEFAULT_ROOM_NAME(roomName));
+    sprintf_P(customHostname, PSTR("ESP8266-SimpleHome-%s"), SAVED_OR_DEFAULT_ROOM_NAME(roomName));
     WiFi.mode(WIFI_STA);
     WiFi.hostname(customHostname);
     WiFi.begin(ssid, password);
@@ -35,7 +35,7 @@ void configureNetwork() {
       sprintf(logMessage, "IP address: %s", WiFi.localIP().toString().c_str());
       log(logMessage);
       sprintf(logMessage, "Signal strength (RSSI): %ld dBm\n", WiFi.RSSI());
-      log(logMessage); 
+      log(logMessage);
       free(logMessage);
       #endif
     }

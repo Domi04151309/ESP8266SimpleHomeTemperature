@@ -56,9 +56,9 @@ class DHT {
 public:
   DHT(uint8_t pin, uint8_t type, uint8_t count = 6);
   void begin(uint8_t usec = 55);
-  float readTemperature(bool S = false, bool force = false);
-  float readHumidity(bool force = false);
-  bool read(bool force = false);
+  float readTemperature();
+  float readHumidity();
+  bool read();
 
 private:
   uint8_t data[5];

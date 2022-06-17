@@ -45,22 +45,22 @@ void DHT_Unified::begin() { _dht.begin(); }
 void DHT_Unified::setName(sensor_t *sensor) {
   switch (_type) {
   case DHT11:
-    strncpy(sensor->name, "DHT11", sizeof(sensor->name) - 1);
+    strcpy_P(sensor->name, PSTR("DHT11"));
     break;
   case DHT12:
-    strncpy(sensor->name, "DHT12", sizeof(sensor->name) - 1);
+    strcpy_P(sensor->name, PSTR("DHT12"));
     break;
   case DHT21:
-    strncpy(sensor->name, "DHT21", sizeof(sensor->name) - 1);
+    strcpy_P(sensor->name, PSTR("DHT21"));
     break;
   case DHT22:
-    strncpy(sensor->name, "DHT22", sizeof(sensor->name) - 1);
+    strcpy_P(sensor->name, PSTR("DHT22"));
     break;
   default:
     // TODO: Perhaps this should be an error?  However main DHT library doesn't
     // enforce restrictions on the sensor type value.  Pick a generic name for
     // now.
-    strncpy(sensor->name, "DHT?", sizeof(sensor->name) - 1);
+    strcpy_P(sensor->name, PSTR("DHT?"));
     break;
   }
   sensor->name[sizeof(sensor->name) - 1] = 0;

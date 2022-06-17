@@ -74,18 +74,12 @@ void DHT::begin(uint8_t usec) {
 
 /*!
  *  @brief  Read temperature
- *  @param  S
- *          Scale. Boolean value:
- *					- true = Celcius
- *					- false = Celcius
- *  @param  force
- *          true if in force mode
- *	@return Temperature value in selected scale
+ *	@return Temperature value in Celcius
  */
-float DHT::readTemperature(bool S, bool force) {
+float DHT::readTemperature() {
   float f = NAN;
 
-  if (read(force)) {
+  if (read()) {
     switch (_type) {
     case DHT11:
       f = data[2];
@@ -114,13 +108,11 @@ float DHT::readTemperature(bool S, bool force) {
 
 /*!
  *  @brief  Read Humidity
- *  @param  force
- *					force read mode
  *	@return float value - humidity in percent
  */
-float DHT::readHumidity(bool force) {
+float DHT::readHumidity() {
   float f = NAN;
-  if (read(force)) {
+  if (read()) {
     switch (_type) {
     case DHT11:
     case DHT12:
@@ -138,15 +130,13 @@ float DHT::readHumidity(bool force) {
 /*!
  *  @brief  Read value from sensor or return last one from less than two
  *seconds.
- *  @param  force
- *          true if using force mode
  *	@return float value
  */
-bool DHT::read(bool force) {
+bool DHT::read() {
   // Check if sensor was read less than two seconds ago and return early
   // to use last reading.
   uint32_t currenttime = millis();
-  if (!force && ((currenttime - _lastreadtime) < MIN_INTERVAL)) {
+  if ((currenttime - _lastreadtime) < MIN_INTERVAL) {
     return _lastresult; // return last correct measurement
   }
   _lastreadtime = currenttime;

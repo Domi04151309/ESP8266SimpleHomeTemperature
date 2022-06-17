@@ -18,7 +18,7 @@ bool Routes::shouldRestart = false;
 void Routes::handleRoot() {
   server->keepAlive(false);
   server->send(
-    200, 
+    200,
     MIME_HTML,
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
@@ -52,9 +52,9 @@ void Routes::handleWiFi() {
             "<script src='/wifi-script' defer></script>"
             "</body></html>"
           );
-          
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Expires", "0");
+
+  server->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
+  server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
   free(ssid);
@@ -63,9 +63,9 @@ void Routes::handleWiFi() {
 void Routes::handleWiFiScript() {
   server->keepAlive(false);
   server->send(
-    200, 
+    200,
     F("text/javascript"),
-    F( 
+    F(
       "const list = document.getElementById('list');"
       "loadNetworks();"
       "function loadNetworks() {"
@@ -105,7 +105,7 @@ void Routes::handleWiFiResult() {
     page += F("\"No networks found\"");
   }
   page += F("]");
-  
+
   server->keepAlive(false);
   server->send(200, F("application/json"), page);
 }
@@ -118,7 +118,7 @@ void Routes::handleWiFiSave() {
   server->arg("password").toCharArray(password, sizeof(password) - 1);
   server->keepAlive(false);
   server->send(
-    200, 
+    200,
     MIME_HTML,
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
@@ -156,9 +156,9 @@ void Routes::handleRoomName() {
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
-          
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Expires", "0");
+
+  server->sendHeader(F("Cache-Control"), F( "no-cache, no-store, must-revalidate"));
+  server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
   free(roomName);
@@ -169,7 +169,7 @@ void Routes::handleRoomNameSave() {
   server->arg("name").toCharArray(roomName, sizeof(roomName) - 1);
   server->keepAlive(false);
   server->send(
-    200, 
+    200,
     MIME_HTML,
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
@@ -198,6 +198,9 @@ void Routes::handleStatus() {
             "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>Status</h1>"
             "<ul>"
+#ifdef LOGGING
+            "<li>LOGGING ENABLED</li>"
+#endif
             "<li>WiFi: "
           );
   page += WiFi.status() == WL_CONNECTED ? WiFi.SSID() : "Disconnected";
@@ -225,9 +228,9 @@ void Routes::handleStatus() {
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "</body></html>"
           );
-          
-  server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server->sendHeader("Expires", "0");
+
+  server->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
+  server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
 }
@@ -235,7 +238,7 @@ void Routes::handleStatus() {
 void Routes::handleCommand() {
   server->keepAlive(false);
   server->send(
-    200, 
+    200,
     F("application/json"),
     F(
       "{\"toast\":\"Online!\"}"
@@ -246,7 +249,7 @@ void Routes::handleCommand() {
 void Routes::handleCss() {
   server->keepAlive(false);
   server->send(
-    200, 
+    200,
     F("text/css"),
     F(
       ":root { font-family: sans-serif; line-height: 1.5; }"
@@ -261,7 +264,7 @@ void Routes::handleCss() {
 void Routes::handleNotFound() {
   server->keepAlive(false);
   server->send(
-    404, 
+    404,
     MIME_HTML,
     F(
       "<!doctype html><html>" HTML_HEAD "<body>"
