@@ -1,7 +1,5 @@
 #include "Config.h"
 
-#define DUMMY_IS_WEATHER_ENABLED true
-
 #ifdef LOGGING
   #define DEBUG_ESP_HTTP_SERVER
   #define ENABLE_DEBUG_PING
@@ -53,6 +51,8 @@ void setup() {
   server.on(F("/wifi-save"), HTTP_ANY, std::bind(&Routes::handleWiFiSave, routes));
   server.on(F("/room-name"), HTTP_GET, std::bind(&Routes::handleRoomName, routes));
   server.on(F("/room-name-save"), HTTP_ANY, std::bind(&Routes::handleRoomNameSave, routes));
+  server.on(F("/weather"), HTTP_GET, std::bind(&Routes::handleWeather, routes));
+  server.on(F("/weather-save"), HTTP_ANY, std::bind(&Routes::handleWeatherSave, routes));
   server.on(F("/request-restart"), HTTP_GET, std::bind(&Routes::handleRequestRestart, routes));
   server.on(F("/status"), HTTP_GET, std::bind(&Routes::handleStatus, routes));
   server.on(F("/commands"), HTTP_GET, handleCommands);
@@ -90,7 +90,8 @@ void loop() {
 
   if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) {
     cycle = 0;
-    if (DUMMY_IS_WEATHER_ENABLED) {
+    char* weatherDisplay = readFromFile("weather");
+    if (strcmp(weatherDisplay, "1") == 0) {
       HTTPClient http;
       WiFiClientSecure client;
       client.setInsecure(); 
@@ -102,6 +103,7 @@ void loop() {
     } else {
       Ping.ping(WiFi.gatewayIP());
     }
+    free(weatherDisplay);
 
     #ifdef LOGGING
     char* logMessage = (char*) malloc(sizeof(char) * 64);
@@ -148,7 +150,8 @@ void handleCommands() {
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     weather
   );
-  if (DUMMY_IS_WEATHER_ENABLED) {
+  char* weatherDisplay = readFromFile("weather");
+  if (strcmp(weatherDisplay, "1") == 0) {
     sprintf_P(
       message + strlen(message),
       PSTR(
@@ -158,6 +161,7 @@ void handleCommands() {
       weather
     );
   }
+  free(weatherDisplay);
   strcat_P(message, PSTR("}}"));
 
   server.keepAlive(false);

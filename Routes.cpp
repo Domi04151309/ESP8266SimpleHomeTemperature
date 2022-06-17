@@ -24,7 +24,12 @@ void Routes::handleRoot() {
       "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Settings</h1>"
       "<p>Welcome to your ESP8266! What do you want to do?</p>"
-      "<nav><ul><li><a href='/wifi'>Configure WiFi</a></li><li><a href='/room-name'>Change Room Name</a></li><li><a href='/status'>View the device's status</a></li></ul></nav>"
+      "<nav><ul>"
+      "<li><a href='/wifi'>Configure WiFi</a></li>"
+      "<li><a href='/room-name'>Change Room Name</a></li>"
+      "<li><a href='/weather'>Toggle weather display</a></li>"
+      "<li><a href='/status'>View the device's status</a></li>"
+      "</ul></nav>"
       "</body></html>"
     )
   );
@@ -181,6 +186,57 @@ void Routes::handleRoomNameSave() {
   );
   writeToFile("room_name", roomName);
   log("Changed room name");
+}
+
+void Routes::handleWeather() {
+  char* weatherDisplay = readFromFile("weather");
+  String page;
+  page += F(
+            "<!doctype html><html>" HTML_HEAD "<body>"
+            "<h1>Weather Display</h1>"
+            "<p>Currently the weather display is "
+          );
+  page += strcmp(weatherDisplay, "1") == 0 ? "enabled" : "disabled";
+  page += F(
+            ". Please note that weather data is fetched from the Internet. "
+            "Data that can be regarded personal will get transmitted to the weather provider.</p>"
+            "<h2>Toggle Weather Display</h2>"
+            "<form method='POST' action='weather-save'>"
+            "<input type='hidden' name='bool' value='"
+          );
+  page += strcmp(weatherDisplay, "1") == 0 ? "0" : "1";
+  page += F(
+            "' />"
+            "<input type='submit' value='Toggle' />"
+            "</form>"
+            "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+            "</body></html>"
+          );
+
+  server->sendHeader(F("Cache-Control"), F( "no-cache, no-store, must-revalidate"));
+  server->sendHeader(F("Expires"), F("0"));
+  server->keepAlive(false);
+  server->send(200, MIME_HTML, page);
+  free(weatherDisplay);
+}
+
+void Routes::handleWeatherSave() {
+  char weatherDisplay[32] = "";
+  server->arg("bool").toCharArray(weatherDisplay, sizeof(weatherDisplay) - 1);
+  server->keepAlive(false);
+  server->send(
+    200,
+    MIME_HTML,
+    F(
+      "<!doctype html><html>" HTML_HEAD "<body>"
+      "<h1>Success</h1>"
+      "<p>Updated the weather display successfully!</p>"
+      "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+      "</body></html>"
+    )
+  );
+  writeToFile("weather", weatherDisplay);
+  log("Changed weather display");
 }
 
 void Routes::handleRequestRestart() {
