@@ -95,10 +95,8 @@ void loop() {
       HTTPClient http;
       WiFiClientSecure client;
       client.setInsecure(); 
-      http.begin(client, "https://wttr.in/?T&format=%t+in+%l");
-      if (http.GET() == HTTP_CODE_OK) {
-        strcpy(weather, http.getString().c_str());
-      }
+      http.begin(client, "wttr.in", 443, "/?T&format=%t+in+%l", true);
+      if (http.GET() == HTTP_CODE_OK) strcpy(weather, http.getString().c_str());
       http.end();
     } else {
       Ping.ping(WiFi.gatewayIP());
@@ -135,6 +133,7 @@ void handleCommands() {
   }
 
   char* roomName = readFromFile("room_name");
+  char* weatherDisplay = readFromFile("weather");
   char* message = (char*) malloc(sizeof(char) * 512);
   sprintf_P(
     message,
@@ -150,7 +149,6 @@ void handleCommands() {
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     weather
   );
-  char* weatherDisplay = readFromFile("weather");
   if (strcmp(weatherDisplay, "1") == 0) {
     sprintf_P(
       message + strlen(message),
@@ -161,11 +159,11 @@ void handleCommands() {
       weather
     );
   }
-  free(weatherDisplay);
   strcat_P(message, PSTR("}}"));
 
   server.keepAlive(false);
   server.send(200, F("application/json"), message);
   free(roomName);
+  free(weatherDisplay);
   free(message);
 }

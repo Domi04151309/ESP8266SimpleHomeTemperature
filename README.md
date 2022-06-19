@@ -31,7 +31,7 @@ You can then continue like it's a fresh install.
 ### Additional Info
 The device is ready as soon as the onboard LED turns off.
 
-### Modified Libraries
+### Modified Libraries <!-- 3.0.2 -->
 The `src` folder includes modified versions of libraries to improve efficiency.
 
 ## Legal Notice
