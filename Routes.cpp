@@ -249,14 +249,17 @@ void Routes::handleRequestRestart() {
 }
 
 void Routes::handleStatus() {
+  char* uptime = (char*) malloc(sizeof(char) * 16);
+  uint32_t seconds = millis() / 1000;
+  uint32_t minutes = seconds / 60;
+  uint16_t hours = minutes / 60;
+  sprintf_P(uptime, PSTR("%02u:%02u:%02u"), hours, minutes % 60, seconds % 60);
+  
   String page;
   page += F(
             "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>Status</h1>"
             "<ul>"
-#ifdef LOGGING
-            "<li>LOGGING ENABLED</li>"
-#endif
             "<li>WiFi: "
           );
   page += WiFi.status() == WL_CONNECTED ? WiFi.SSID() : "Disconnected";
@@ -277,6 +280,11 @@ void Routes::handleStatus() {
   page += ESP.getHeapFragmentation();
   page += F(
             " %</li>"
+            "<li>Uptime: "
+          );
+  page += uptime;
+  page += F(
+            "</li>"
             #ifdef LOGGING
             "<li>LOGGING IS ENABLED</li>"
             #endif
@@ -289,6 +297,7 @@ void Routes::handleStatus() {
   server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
+  free(uptime);
 }
 
 void Routes::handleCommand() {
