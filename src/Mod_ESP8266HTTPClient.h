@@ -113,10 +113,6 @@ protected:
     String _protocol;
     String _userAgent;
 
-    /// Response handling
-    RequestArgument* _currentHeaders = nullptr;
-    size_t           _headerKeysCount = 0;
-
     int _returnCode = 0;
     int _size = -1;
     transferEncoding_t _transferEncoding = HTTPC_TE_IDENTITY;
