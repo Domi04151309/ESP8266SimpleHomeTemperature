@@ -57,9 +57,6 @@ HTTPClient::~HTTPClient()
     if(_client) {
         _client->stop();
     }
-    if(_currentHeaders) {
-        delete[] _currentHeaders;
-    }
 }
 
 void HTTPClient::clear()
@@ -160,13 +157,6 @@ int HTTPClient::GET()
 int HTTPClient::sendRequest(const char * type)
 {
     int code;
-
-    // wipe out any existing headers from previous request
-    for(size_t i = 0; i < _headerKeysCount; i++) {
-        if (_currentHeaders[i].value.length() > 0) {
-            _currentHeaders[i].value.clear();
-        }
-    }
 
     DEBUG_HTTPCLIENT("[HTTP-Client][sendRequest] type: '%s'\n", type);
 
@@ -417,18 +407,6 @@ int HTTPClient::handleHeaderResponse()
                     transferEncoding = headerValue;
                 }
 
-                for (size_t i = 0; i < _headerKeysCount; i++) {
-                    if (_currentHeaders[i].key.equalsIgnoreCase(headerName)) {
-                        if (!_currentHeaders[i].value.isEmpty()) {
-                            // Existing value, append this one with a comma
-                            _currentHeaders[i].value += ',';
-                            _currentHeaders[i].value += headerValue;
-                        } else {
-                            _currentHeaders[i].value = headerValue;
-                        }
-                        break; // We found a match, stop looking
-                    }
-                }
                 continue;
             }
 
