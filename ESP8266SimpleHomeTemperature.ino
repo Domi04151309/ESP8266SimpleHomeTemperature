@@ -10,7 +10,7 @@
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
-#include <ESP8266HTTPClient.h>
+#include "src/Mod_ESP8266HTTPClient.h"
 #include "src/Mod_ESP8266SSDP.h"
 #include <LittleFS.h>
 #include "src/Mod_DHT.h"
@@ -96,7 +96,8 @@ void loop() {
       WiFiClientSecure client;
       client.setInsecure(); 
       http.begin(client, "wttr.in", 443, "/?T&format=%t+in+%l", true);
-      if (http.GET() == HTTP_CODE_OK) strcpy(weather, http.getString().c_str());
+      if (http.GET() == 200) strcpy(weather, http.getString().c_str());
+      else log(http.getString().c_str());
       http.end();
     } else {
       Ping.ping(WiFi.gatewayIP());
