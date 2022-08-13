@@ -94,6 +94,7 @@ void loop() {
 
     if (updateCycle > AUTO_UPDATE_CYCLES) {
       updateCycle = 0;
+      updateSensorData();
       char* weatherDisplay = readFromFile("weather");
       if (strcmp(weatherDisplay, "1") == 0) {
         HTTPClient http;
@@ -128,18 +129,18 @@ void loop() {
   delay(LOOP_DELAY);
 }
 
-void handleCommands() {
+void updateSensorData() {
   float event;
   
   event = dht.readTemperature();
-  if (!isnan(event)) {
-    temperature = event;
-  }
+  if (!isnan(event)) temperature = event;
 
   event = dht.readHumidity();
-  if (!isnan(event)) {
-    humidity = event;
-  }
+  if (!isnan(event)) humidity = event;
+}
+
+void handleCommands() {
+  updateSensorData();
 
   char* roomName = readFromFile("room_name");
   char* weatherDisplay = readFromFile("weather");
