@@ -23,6 +23,7 @@ ESP8266WebServer server(80);
 DHT dht(4, DHT22);
 
 unsigned int cycle = 0;
+uint8_t updateCycle = 0;
 float temperature = 0;
 float humidity = 0;
 char* weather;
@@ -90,19 +91,26 @@ void loop() {
 
   if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) {
     cycle = 0;
-    char* weatherDisplay = readFromFile("weather");
-    if (strcmp(weatherDisplay, "1") == 0) {
-      HTTPClient http;
-      WiFiClientSecure client;
-      client.setInsecure(); 
-      http.begin(client, "wttr.in", 443, "/?T&format=%t+in+%l", true);
-      if (http.GET() == 200) strcpy(weather, http.getString().c_str());
-      else log(http.getString().c_str());
-      http.end();
+
+    if (updateCycle > AUTO_UPDATE_CYCLES) {
+      updateCycle = 0;
+      char* weatherDisplay = readFromFile("weather");
+      if (strcmp(weatherDisplay, "1") == 0) {
+        HTTPClient http;
+        WiFiClientSecure client;
+        client.setInsecure(); 
+        http.begin(client, "wttr.in", 443, "/?T&format=%t+in+%l", true);
+        if (http.GET() == 200) strcpy(weather, http.getString().c_str());
+        else log(http.getString().c_str());
+        http.end();
+      } else {
+        Ping.ping(WiFi.gatewayIP());
+      }
+      free(weatherDisplay);
     } else {
       Ping.ping(WiFi.gatewayIP());
     }
-    free(weatherDisplay);
+    updateCycle++;
 
     #ifdef LOGGING
     char* logMessage = (char*) malloc(sizeof(char) * 64);
