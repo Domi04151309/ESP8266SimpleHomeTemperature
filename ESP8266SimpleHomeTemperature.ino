@@ -6,7 +6,6 @@
   #define DHT_DEBUG
 #endif
 
-#include <ESP.h>
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>

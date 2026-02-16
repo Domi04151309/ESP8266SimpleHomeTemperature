@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <Arduino.h>
-#include <ESP.h>
 #include <ESP8266WiFi.h>
 #include "Files.h"
 #include "Connectivity.h"
