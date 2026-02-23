@@ -9,7 +9,6 @@
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
-#include "src/Mod_ESP8266HTTPClient.h"
 #include "src/Mod_ESP8266SSDP.h"
 #include <LittleFS.h>
 #include "src/Mod_DHT.h"
@@ -25,7 +24,6 @@ unsigned int cycle = 0;
 uint8_t updateCycle = 0;
 float temperature = 0;
 float humidity = 0;
-char* weather;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -51,8 +49,6 @@ void setup() {
   server.on(F("/wifi-save"), HTTP_ANY, std::bind(&Routes::handleWiFiSave, routes));
   server.on(F("/room-name"), HTTP_GET, std::bind(&Routes::handleRoomName, routes));
   server.on(F("/room-name-save"), HTTP_ANY, std::bind(&Routes::handleRoomNameSave, routes));
-  server.on(F("/weather"), HTTP_GET, std::bind(&Routes::handleWeather, routes));
-  server.on(F("/weather-save"), HTTP_ANY, std::bind(&Routes::handleWeatherSave, routes));
   server.on(F("/request-restart"), HTTP_GET, std::bind(&Routes::handleRequestRestart, routes));
   server.on(F("/status"), HTTP_GET, std::bind(&Routes::handleStatus, routes));
   server.on(F("/commands"), HTTP_GET, handleCommands);
@@ -78,10 +74,6 @@ void setup() {
   strcpy_P(SSDP.deviceType, PSTR("upnp:rootdevice"));
   SSDP.begin();
 
-  //Weather service
-  weather = (char*) malloc(sizeof(char) * 64);
-  strcpy_P(weather, PSTR("Unknown"));
-
   digitalWrite(LED_BUILTIN, 1);
 }
 
@@ -93,23 +85,9 @@ void loop() {
 
     if (updateCycle > AUTO_UPDATE_CYCLES) {
       updateCycle = 0;
-      updateSensorData();
-      char* weatherDisplay = readFromFile("weather");
-      if (strcmp(weatherDisplay, "1") == 0) {
-        HTTPClient http;
-        WiFiClientSecure client;
-        client.setInsecure(); 
-        http.begin(client, "wttr.in", 443, "/?T&format=%t+in+%l", true);
-        if (http.GET() == 200) strcpy(weather, http.getString().c_str());
-        else log(http.getString().c_str());
-        http.end();
-      } else {
-        Ping.ping(WiFi.gatewayIP());
-      }
-      free(weatherDisplay);
-    } else {
-      Ping.ping(WiFi.gatewayIP());
+      updateSensorData(); 
     }
+    Ping.ping(WiFi.gatewayIP());
     updateCycle++;
 
     #ifdef LOGGING
@@ -142,7 +120,6 @@ void handleCommands() {
   updateSensorData();
 
   char* roomName = readFromFile("room_name");
-  char* weatherDisplay = readFromFile("weather");
   char* message = (char*) malloc(sizeof(char) * 512);
   sprintf_P(
     message,
@@ -151,28 +128,17 @@ void handleCommands() {
         "\"commands\":{"
           "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},"
           "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}"
+        "}"
+      "}"
     ),
     temperature,
     SAVED_OR_DEFAULT_ROOM_NAME(roomName),
     humidity,
-    SAVED_OR_DEFAULT_ROOM_NAME(roomName),
-    weather
+    SAVED_OR_DEFAULT_ROOM_NAME(roomName)
   );
-  if (strcmp(weatherDisplay, "1") == 0) {
-    sprintf_P(
-      message + strlen(message),
-      PSTR(
-        ","
-        "\"weather\":{\"icon\": \"gauge\",\"title\":\"Weather\",\"summary\":\"%s\", \"mode\": \"none\"}"
-      ),
-      weather
-    );
-  }
-  strcat_P(message, PSTR("}}"));
 
   server.keepAlive(false);
   server.send(200, F("application/json"), message);
   free(roomName);
-  free(weatherDisplay);
   free(message);
 }

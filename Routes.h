@@ -16,8 +16,6 @@ class Routes {
     void handleWiFiSave();
     void handleRoomName();
     void handleRoomNameSave();
-    void handleWeather();
-    void handleWeatherSave();
     void handleRequestRestart();
     void handleStatus();
     void handleCommand();
