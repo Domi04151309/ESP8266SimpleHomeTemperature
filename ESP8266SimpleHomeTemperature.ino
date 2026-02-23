@@ -18,6 +18,7 @@
 #include "Logging.h"
 
 ESP8266WebServer server(80);
+Routes routes(&server);
 DHT dht(4, DHT22);
 
 unsigned long lastMillis = 0;
@@ -41,27 +42,25 @@ void setup() {
   configureNetwork();
 
   //Add routes
-  static Routes routes(&server);
-
-  server.on(F("/"), HTTP_GET, std::bind(&Routes::handleRoot, routes));
-  server.on(F("/wifi"), HTTP_GET, std::bind(&Routes::handleWiFi, routes));
-  server.on(F("/wifi-script"), HTTP_GET, std::bind(&Routes::handleWiFiScript, routes));
-  server.on(F("/wifi-result"), HTTP_GET, std::bind(&Routes::handleWiFiResult, routes));
-  server.on(F("/wifi-save"), HTTP_ANY, std::bind(&Routes::handleWiFiSave, routes));
-  server.on(F("/room-name"), HTTP_GET, std::bind(&Routes::handleRoomName, routes));
-  server.on(F("/room-name-save"), HTTP_ANY, std::bind(&Routes::handleRoomNameSave, routes));
-  server.on(F("/request-restart"), HTTP_GET, std::bind(&Routes::handleRequestRestart, routes));
-  server.on(F("/status"), HTTP_GET, std::bind(&Routes::handleStatus, routes));
+  server.on(F("/"), HTTP_GET, []() { routes.handleRoot(); });
+  server.on(F("/wifi"), HTTP_GET, []() { routes.handleWiFi(); });
+  server.on(F("/wifi-script"), HTTP_GET, []() { routes.handleWiFiScript(); });
+  server.on(F("/wifi-result"), HTTP_GET, []() { routes.handleWiFiResult(); });
+  server.on(F("/wifi-save"), HTTP_ANY, []() { routes.handleWiFiSave(); });
+  server.on(F("/room-name"), HTTP_GET, []() { routes.handleRoomName(); });
+  server.on(F("/room-name-save"), HTTP_ANY, []() { routes.handleRoomNameSave(); });
+  server.on(F("/request-restart"), HTTP_GET, []() { routes.handleRequestRestart(); });
+  server.on(F("/status"), HTTP_GET, []() { routes.handleStatus(); });
   server.on(F("/commands"), HTTP_GET, handleCommands);
-  server.on(F("/temperature"), HTTP_GET, std::bind(&Routes::handleCommand, routes));
-  server.on(F("/humidity"), HTTP_GET, std::bind(&Routes::handleCommand, routes));
-  server.on(F("/css"), HTTP_GET, std::bind(&Routes::handleCss, routes));
+  server.on(F("/temperature"), HTTP_GET, []() { routes.handleCommand(); });
+  server.on(F("/humidity"), HTTP_GET, []() { routes.handleCommand(); });
+  server.on(F("/css"), HTTP_GET, []() { routes.handleCss(); });
   server.on(F("/description.xml"), HTTP_GET, []() {
     WiFiClient client = server.client();
     SSDP.schema(client);
     client.stop();
   });
-  server.onNotFound(std::bind(&Routes::handleNotFound, routes));
+  server.onNotFound([]() { routes.handleNotFound(); });
   server.begin();
 
   //Service Discovery
@@ -119,8 +118,7 @@ void handleCommands() {
   updateSensorData();
 
   String roomName = readFromFile("room_name");
-  const char* savedOrDefaultRoomName = SAVED_OR_DEFAULT_ROOM_NAME(roomName);
-  char message[512];
+  char message[256];
 
   snprintf_P(
     message,
@@ -134,9 +132,9 @@ void handleCommands() {
       "}"
     ),
     temperature,
-    savedOrDefaultRoomName,
+    roomName.c_str(),
     humidity,
-    savedOrDefaultRoomName
+    roomName.c_str()
   );
 
   server.keepAlive(false);

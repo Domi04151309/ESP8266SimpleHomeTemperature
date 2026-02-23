@@ -136,7 +136,6 @@ void Routes::handleWiFiSave() {
 
   writeToFile("ssid", ssid.c_str());
   writeToFile("password", password.c_str());
-  log("Changed wifi config");
 }
 
 void Routes::handleRoomName() {
@@ -148,14 +147,14 @@ void Routes::handleRoomName() {
             "<h1>Room Name</h1>"
             "<p>The current room name is &ldquo;"
           );
-  page += SAVED_OR_DEFAULT_ROOM_NAME(roomName);
+  page += roomName.c_str();
   page += F(
             "&rdquo;.</p>"
             "<h2>Change Room Name</h2>"
             "<form method='POST' action='room-name-save'>"
             "<input type='text' placeholder='Room name' name='name' value='"
           );
-  page += roomName;
+  page += roomName.c_str();
   page += F(
             "' />"
             "<input type='submit' value='Change' />"
@@ -187,7 +186,6 @@ void Routes::handleRoomNameSave() {
   );
 
   writeToFile("room_name", roomName.c_str());
-  log("Changed room name");
 }
 
 void Routes::handleRequestRestart() {

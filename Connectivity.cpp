@@ -20,7 +20,7 @@ void configureNetwork() {
 
     String roomName = readFromFile("room_name");
     char customHostname[48];
-    snprintf_P(customHostname, sizeof(customHostname), PSTR("ESP8266-SimpleHome-%s"), SAVED_OR_DEFAULT_ROOM_NAME(roomName));
+    snprintf_P(customHostname, sizeof(customHostname), PSTR("ESP8266-SimpleHome-%s"), roomName.c_str());
 
     WiFi.persistent(false);
     WiFi.mode(WIFI_STA);

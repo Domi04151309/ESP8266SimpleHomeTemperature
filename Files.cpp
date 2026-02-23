@@ -23,6 +23,7 @@ bool writeToFile(const char* filename, const char* content) {
   }
 
   if (file.print(content) == 0) {
+    file.close();
     return false;
   }
 
