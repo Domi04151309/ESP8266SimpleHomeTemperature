@@ -34,7 +34,7 @@ void Routes::handleRoot() {
 }
 
 void Routes::handleWiFi() {
-  char* ssid = readFromFile("ssid");
+  String ssid = readFromFile("ssid");
 
   String page;
   page += F(
@@ -61,8 +61,6 @@ void Routes::handleWiFi() {
   server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
-
-  free(ssid);
 }
 
 void Routes::handleWiFiScript() {
@@ -142,7 +140,7 @@ void Routes::handleWiFiSave() {
 }
 
 void Routes::handleRoomName() {
-  char* roomName = readFromFile("room_name");
+  String roomName = readFromFile("room_name");
 
   String page;
   page += F(
@@ -170,8 +168,6 @@ void Routes::handleRoomName() {
   server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
-
-  free(roomName);
 }
 
 void Routes::handleRoomNameSave() {

@@ -8,17 +8,17 @@
 void configureNetwork() {
   log("Configuring network...");
 
-  char* ssid = readFromFile("ssid");
-  char* password = readFromFile("password");
+  String ssid = readFromFile("ssid");
+  String password = readFromFile("password");
 
   wifi_set_sleep_type(NONE_SLEEP_T);
 
-  if (strlen(ssid) == 0 || strlen(password) == 0) {
+  if (ssid.length() == 0 || password.length() == 0) {
     startAP();
   } else {
     log("Attempting to connect...");
 
-    char* roomName = readFromFile("room_name");
+    String roomName = readFromFile("room_name");
     char customHostname[48];
     snprintf_P(customHostname, sizeof(customHostname), PSTR("ESP8266-SimpleHome-%s"), SAVED_OR_DEFAULT_ROOM_NAME(roomName));
 
@@ -26,8 +26,6 @@ void configureNetwork() {
     WiFi.mode(WIFI_STA);
     WiFi.hostname(customHostname);
     WiFi.begin(ssid, password);
-
-    free(roomName);
 
     for (uint8_t i = 0; i < 50; i++) {
       if (WiFi.status() == WL_CONNECTED) {
@@ -51,9 +49,6 @@ void configureNetwork() {
       #endif
     }
   }
-
-  free(ssid);
-  free(password);
 }
 
 void startAP() {

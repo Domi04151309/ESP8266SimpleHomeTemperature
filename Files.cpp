@@ -1,21 +1,16 @@
 #include "Files.h"
 
+#include <Arduino.h>
 #include <LittleFS.h>
 
-char* readFromFile(const char* filename) {
+String readFromFile(const char* filename) {
   File file = LittleFS.open(filename, "r");
 
   if (!file || file.isDirectory()) {
-    char* result = (char*) malloc(sizeof(char));
-    result[0] = '\0';
-    return result;
+    return String("");
   }
 
-  size_t size = file.size();
-  char* result = (char*) malloc(size + 1);
-
-  file.readBytes(result, size);
-  result[size] = '\0';
+  String result = file.readString();
   file.close();
   return result;
 }

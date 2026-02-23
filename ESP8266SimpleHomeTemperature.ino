@@ -118,7 +118,7 @@ void updateSensorData() {
 void handleCommands() {
   updateSensorData();
 
-  char* roomName = readFromFile("room_name");
+  String roomName = readFromFile("room_name");
   const char* savedOrDefaultRoomName = SAVED_OR_DEFAULT_ROOM_NAME(roomName);
   char message[512];
 
@@ -141,6 +141,4 @@ void handleCommands() {
 
   server.keepAlive(false);
   server.send(200, F("application/json"), message);
-
-  free(roomName);
 }
