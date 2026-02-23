@@ -4,25 +4,34 @@
 
 char* readFromFile(const char* filename) {
   File file = LittleFS.open(filename, "r");
-  if (!file) {
+
+  if (!file || file.isDirectory()) {
     char* result = (char*) malloc(sizeof(char));
     result[0] = '\0';
     return result;
   }
-  char* result = (char*) malloc(file.size() + sizeof(char));
-  int i;
-  for (i = 0; file.available(); i++) {
-      result[i] = (char) file.read();
-  }
-  result[i] = '\0';
+
+  size_t size = file.size();
+  char* result = (char*) malloc(size + 1);
+
+  file.readBytes(result, size);
+  result[size] = '\0';
   file.close();
   return result;
 }
 
-bool writeToFile(const char* filename, char content[]) {  
+bool writeToFile(const char* filename, const char* content) {
   File file = LittleFS.open(filename, "w");
-  if (!file) return false;
-  if (file.print(content) == 0) return false;
+
+  if (!file) {
+    return false;
+  }
+
+  if (file.print(content) == 0) {
+    return false;
+  }
+
   file.close();
+
   return true;
 }

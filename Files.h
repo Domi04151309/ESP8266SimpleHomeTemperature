@@ -2,6 +2,6 @@
 #define FILES_H
 
 char* readFromFile(const char* filename);
-bool writeToFile(const char* filename, char content[]);
+bool writeToFile(const char* filename, const char* content);
 
 #endif

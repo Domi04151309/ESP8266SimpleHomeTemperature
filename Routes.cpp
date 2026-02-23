@@ -35,6 +35,7 @@ void Routes::handleRoot() {
 
 void Routes::handleWiFi() {
   char* ssid = readFromFile("ssid");
+
   String page;
   page += F(
             "<!doctype html><html>" HTML_HEAD "<body>"
@@ -60,6 +61,7 @@ void Routes::handleWiFi() {
   server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
+
   free(ssid);
 }
 
@@ -86,7 +88,7 @@ void Routes::handleWiFiScript() {
       "}"
       "function appendItem(text) {"
         "const li = document.createElement('li');"
-        "li.appendChild(document.createTextNode(text));"
+        "li.textContent = text;"
         "list.appendChild(li);"
       "}"
     )
@@ -111,14 +113,16 @@ void Routes::handleWiFiResult() {
 
   server->keepAlive(false);
   server->send(200, F("application/json"), page);
+
+  WiFi.scanDelete();
 }
 
 void Routes::handleWiFiSave() {
   Routes::shouldRestart = true;
-  char ssid[32] = "";
-  char password[32] = "";
-  server->arg("ssid").toCharArray(ssid, sizeof(ssid) - 1);
-  server->arg("password").toCharArray(password, sizeof(password) - 1);
+
+  String ssid = server->arg("ssid");
+  String password = server->arg("password");
+
   server->keepAlive(false);
   server->send(
     200,
@@ -131,13 +135,15 @@ void Routes::handleWiFiSave() {
       "</body></html>"
     )
   );
-  writeToFile("ssid", ssid);
-  writeToFile("password", password);
+
+  writeToFile("ssid", ssid.c_str());
+  writeToFile("password", password.c_str());
   log("Changed wifi config");
 }
 
 void Routes::handleRoomName() {
   char* roomName = readFromFile("room_name");
+
   String page;
   page += F(
             "<!doctype html><html>" HTML_HEAD "<body>"
@@ -164,12 +170,13 @@ void Routes::handleRoomName() {
   server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
+
   free(roomName);
 }
 
 void Routes::handleRoomNameSave() {
-  char roomName[32] = "";
-  server->arg("name").toCharArray(roomName, sizeof(roomName) - 1);
+  String roomName = server->arg("name");
+
   server->keepAlive(false);
   server->send(
     200,
@@ -182,7 +189,8 @@ void Routes::handleRoomNameSave() {
       "</body></html>"
     )
   );
-  writeToFile("room_name", roomName);
+
+  writeToFile("room_name", roomName.c_str());
   log("Changed room name");
 }
 
@@ -190,18 +198,18 @@ void Routes::handleRequestRestart() {
   server->keepAlive(false);
   server->send(200, F("text/javascript"), F("console.log('Restarting');"));
   if (Routes::shouldRestart) {
-    delay(2000);
+    delay(1500);
     ESP.restart();
   }
 }
 
 void Routes::handleStatus() {
-  char* uptime = (char*) malloc(sizeof(char) * 16);
+  char uptime[16];
   uint32_t seconds = millis() / 1000;
   uint32_t minutes = seconds / 60;
   uint16_t hours = minutes / 60;
-  sprintf_P(uptime, PSTR("%02u:%02u:%02u"), hours, minutes % 60, seconds % 60);
-  
+  snprintf_P(uptime, sizeof(uptime), PSTR("%02u:%02u:%02u"), hours, minutes % 60, seconds % 60);
+
   String page;
   page += F(
             "<!doctype html><html>" HTML_HEAD "<body>"
@@ -219,7 +227,7 @@ void Routes::handleStatus() {
             " %</li>"
             "<li>RAM Usage: "
           );
-  page += (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100;
+  page += (ESP.getFreeHeap() * 100) / 81920 * (-1) + 100;
   page += F(
             " %</li>"
             "<li>RAM Fragmentation: "
@@ -244,7 +252,6 @@ void Routes::handleStatus() {
   server->sendHeader(F("Expires"), F("0"));
   server->keepAlive(false);
   server->send(200, MIME_HTML, page);
-  free(uptime);
 }
 
 void Routes::handleCommand() {

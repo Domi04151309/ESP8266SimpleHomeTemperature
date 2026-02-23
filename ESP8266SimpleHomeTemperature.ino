@@ -20,8 +20,7 @@
 ESP8266WebServer server(80);
 DHT dht(4, DHT22);
 
-unsigned int cycle = 0;
-uint8_t updateCycle = 0;
+unsigned long lastMillis = 0;
 float temperature = 0;
 float humidity = 0;
 
@@ -32,16 +31,18 @@ void setup() {
   #ifdef LOGGING
   Serial.begin(9600);
   #endif
+
   LittleFS.begin();
   dht.begin();
 
-  delay(1000);
+  delay(500);
 
   //Configuring AP
   configureNetwork();
 
   //Add routes
-  Routes routes(&server);
+  static Routes routes(&server);
+
   server.on(F("/"), HTTP_GET, std::bind(&Routes::handleRoot, routes));
   server.on(F("/wifi"), HTTP_GET, std::bind(&Routes::handleWiFi, routes));
   server.on(F("/wifi-script"), HTTP_GET, std::bind(&Routes::handleWiFiScript, routes));
@@ -80,35 +81,33 @@ void setup() {
 void loop() {
   server.handleClient();
 
-  if ((cycle * LOOP_DELAY) / PING_INTERVAL >= 1) {
-    cycle = 0;
+  if (millis() - lastMillis >= PING_INTERVAL) {
+    lastMillis = millis();
 
-    if (updateCycle > AUTO_UPDATE_CYCLES) {
-      updateCycle = 0;
-      updateSensorData(); 
-    }
+    updateSensorData();
     Ping.ping(WiFi.gatewayIP());
-    updateCycle++;
 
     #ifdef LOGGING
-    char* logMessage = (char*) malloc(sizeof(char) * 64);
-    sprintf(logMessage, "WiFi Status:        %s (%d %%)", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected", RSSIToPercent(WiFi.RSSI()));
+    char logMessage[128];
+    snprintf(
+      logMessage,
+      sizeof(logMessage),
+      "WiFi: %s (%d%%) | Heap: %d%% | Frag: %d%%",
+      WiFi.status() == WL_CONNECTED ? "OK" : "LOST",
+      RSSIToPercent(WiFi.RSSI()),
+      (int)((ESP.getFreeHeap() * 100) / 81920),
+      ESP.getHeapFragmentation()
+    );
     log(logMessage);
-    sprintf(logMessage, "Heap Usage:         %d %%", (ESP.getFreeHeap() * 100) / 64000 * (-1) + 100);
-    log(logMessage);
-    sprintf(logMessage, "Heap Fragmentation: %d %%\n", ESP.getHeapFragmentation());
-    log(logMessage);
-    free(logMessage);
     #endif
   }
-  cycle++;
 
   delay(LOOP_DELAY);
 }
 
 void updateSensorData() {
   float event;
-  
+
   event = dht.readTemperature();
   if (!isnan(event)) temperature = event;
 
@@ -120,9 +119,12 @@ void handleCommands() {
   updateSensorData();
 
   char* roomName = readFromFile("room_name");
-  char* message = (char*) malloc(sizeof(char) * 512);
-  sprintf_P(
+  const char* savedOrDefaultRoomName = SAVED_OR_DEFAULT_ROOM_NAME(roomName);
+  char message[512];
+
+  snprintf_P(
     message,
+    sizeof(message),
     PSTR(
       "{"
         "\"commands\":{"
@@ -132,13 +134,13 @@ void handleCommands() {
       "}"
     ),
     temperature,
-    SAVED_OR_DEFAULT_ROOM_NAME(roomName),
+    savedOrDefaultRoomName,
     humidity,
-    SAVED_OR_DEFAULT_ROOM_NAME(roomName)
+    savedOrDefaultRoomName
   );
 
   server.keepAlive(false);
   server.send(200, F("application/json"), message);
+
   free(roomName);
-  free(message);
 }
