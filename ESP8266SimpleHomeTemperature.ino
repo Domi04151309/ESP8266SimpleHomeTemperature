@@ -11,7 +11,7 @@
 #include <ESP8266WebServer.h>
 #include "src/Mod_ESP8266SSDP.h"
 #include <LittleFS.h>
-#include "src/Mod_DHT.h"
+#include <DHT.h>
 #include "Connectivity.h"
 #include "Routes.h"
 #include "Files.h"
