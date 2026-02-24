@@ -5,9 +5,9 @@
 
 #ifdef LOGGING
   #include <Arduino.h>
-  #define log(message) Serial.printf("[%d s] %s\n", millis() / 1000, message)
+  #define LOG(...) Serial.printf(__VA_ARGS__)
 #else
-  #define log(message)
+  #define LOG(...)
 #endif
 
 #endif

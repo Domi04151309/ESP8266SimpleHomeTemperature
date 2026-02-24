@@ -248,17 +248,6 @@ void Routes::handleStatus() {
   server->send(200, MIME_HTML, page);
 }
 
-void Routes::handleCommand() {
-  server->keepAlive(false);
-  server->send(
-    200,
-    F("application/json"),
-    F(
-      "{\"toast\":\"Online!\"}"
-    )
-  );
-}
-
 void Routes::handleCss() {
   server->keepAlive(false);
   server->send(

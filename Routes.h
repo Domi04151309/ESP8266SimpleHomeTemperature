@@ -18,7 +18,6 @@ class Routes {
     void handleRoomNameSave();
     void handleRequestRestart();
     void handleStatus();
-    void handleCommand();
     void handleCss();
     void handleNotFound();
     static bool shouldRestart;

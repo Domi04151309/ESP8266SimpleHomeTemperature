@@ -1,11 +1,5 @@
 #include "Config.h"
 
-#ifdef LOGGING
-  #define DEBUG_ESP_HTTP_SERVER
-  #define ENABLE_DEBUG_PING
-  #define DHT_DEBUG
-#endif
-
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
@@ -52,8 +46,6 @@ void setup() {
   server.on(F("/request-restart"), HTTP_GET, []() { routes.handleRequestRestart(); });
   server.on(F("/status"), HTTP_GET, []() { routes.handleStatus(); });
   server.on(F("/commands"), HTTP_GET, handleCommands);
-  server.on(F("/temperature"), HTTP_GET, []() { routes.handleCommand(); });
-  server.on(F("/humidity"), HTTP_GET, []() { routes.handleCommand(); });
   server.on(F("/css"), HTTP_GET, []() { routes.handleCss(); });
   server.on(F("/description.xml"), HTTP_GET, []() {
     WiFiClient client = server.client();
@@ -86,19 +78,13 @@ void loop() {
     updateSensorData();
     Ping.ping(WiFi.gatewayIP());
 
-    #ifdef LOGGING
-    char logMessage[128];
-    snprintf(
-      logMessage,
-      sizeof(logMessage),
-      "WiFi: %s (%d%%) | Heap: %d%% | Frag: %d%%",
+    LOG(
+      "WiFi: %s (%d %%) | Heap: %d %% | Frag: %d %%\n",
       WiFi.status() == WL_CONNECTED ? "OK" : "LOST",
       RSSIToPercent(WiFi.RSSI()),
       (int)((ESP.getFreeHeap() * 100) / 81920),
       ESP.getHeapFragmentation()
     );
-    log(logMessage);
-    #endif
   }
 
   delay(LOOP_DELAY);

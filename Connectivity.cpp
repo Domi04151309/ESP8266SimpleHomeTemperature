@@ -6,7 +6,7 @@
 #include "Config.h"
 
 void configureNetwork() {
-  log("Configuring network...");
+  LOG("Configuring network...\n");
 
   String ssid = readFromFile("ssid");
   String password = readFromFile("password");
@@ -16,7 +16,7 @@ void configureNetwork() {
   if (ssid.length() == 0 || password.length() == 0) {
     startAP();
   } else {
-    log("Attempting to connect...");
+    LOG("Attempting to connect...\n");
 
     String roomName = readFromFile("room_name");
     char customHostname[48];
@@ -36,23 +36,19 @@ void configureNetwork() {
     }
 
     if (WiFi.status() != WL_CONNECTED) {
-      log("Failed to connect");
+      LOG("Failed to connect\n");
+
       WiFi.disconnect();
       startAP();
     } else {
-      #ifdef LOGGING
-      char logMessage[64];
-      snprintf(logMessage, sizeof(logMessage), "Connected to %s", WiFi.SSID().c_str());
-      log(logMessage);
-      snprintf(logMessage, sizeof(logMessage), "IP: %s", WiFi.localIP().toString().c_str());
-      log(logMessage);
-      #endif
+      LOG("Connected to %s\n", WiFi.SSID().c_str());
+      LOG("IP: %s\n", WiFi.localIP().toString().c_str());
     }
   }
 }
 
 void startAP() {
-  log("Starting access point...");
+  LOG("Starting access point...\n");
 
   IPAddress apIP(192, 168, 1, 1);
   IPAddress netMsk(255, 255, 255, 0);
