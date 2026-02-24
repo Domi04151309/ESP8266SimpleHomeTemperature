@@ -9,7 +9,7 @@
 #include <ESP8266WiFi.h>
 #include "src/Mod_ESP8266Ping.h"
 #include <ESP8266WebServer.h>
-#include "src/Mod_ESP8266SSDP.h"
+#include <ESP8266SSDP.h>
 #include <LittleFS.h>
 #include <DHT.h>
 #include "Connectivity.h"
@@ -64,14 +64,14 @@ void setup() {
   server.begin();
 
   //Service Discovery
-  strcpy_P(SSDP.schemaURL, PSTR("description.xml"));
-  SSDP.port = 80;
-  strcpy_P(SSDP.friendlyName, PSTR("Thermometer"));
-  strcpy_P(SSDP.presentationURL, PSTR("status"));
-  strcpy_P(SSDP.modelName, PSTR("SimpleHome"));
-  strcpy_P(SSDP.modelNumber, PSTR("0"));
-  strcpy_P(SSDP.modelURL, PSTR("https://github.com/Domi04151309/HomeApp"));
-  strcpy_P(SSDP.deviceType, PSTR("upnp:rootdevice"));
+  SSDP.setSchemaURL(F("description.xml"));
+  SSDP.setHTTPPort(80);
+  SSDP.setName(F("Thermometer"));
+  SSDP.setURL(F("status"));
+  SSDP.setModelName(F("SimpleHome"));
+  SSDP.setModelNumber(F("0"));
+  SSDP.setModelURL(F("https://github.com/Domi04151309/HomeApp"));
+  SSDP.setDeviceType(F("upnp:rootdevice"));
   SSDP.begin();
 
   digitalWrite(LED_BUILTIN, 1);
