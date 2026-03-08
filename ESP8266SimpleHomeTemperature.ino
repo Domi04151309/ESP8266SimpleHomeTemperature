@@ -6,7 +6,7 @@
 #include <ESP8266SSDP.h>
 #include <LittleFS.h>
 #include <Wire.h>
-#include <DHT.h>
+#include <DHT_U.h>
 #include <SparkFun_ENS160.h>
 #include <Adafruit_AHTX0.h>
 #include "Connectivity.h"
@@ -17,7 +17,7 @@
 ESP8266WebServer server(80);
 Routes routes(&server);
 
-DHT dht(4, DHT22);
+DHT_Unified dht(4, DHT22);
 SparkFun_ENS160 ens160;
 Adafruit_AHTX0 aht;
 
@@ -111,21 +111,21 @@ void loop() {
 }
 
 void updateSensorData() {
+  sensors_event_t temperatureEvent, humidityEvent;
+
   if (hasAht) {
-    sensors_event_t humidityEvent, temperatureEvent;
-
     aht.getEvent(&humidityEvent, &temperatureEvent);
-
-    temperature = temperatureEvent.temperature;
-    humidity = humidityEvent.relative_humidity;
   } else {
-    float event;
+    dht.temperature().getEvent(&temperatureEvent);
+    dht.humidity().getEvent(&humidityEvent);
+  }
 
-    event = dht.readTemperature();
-    if (!isnan(event)) temperature = event;
+  if (!isnan(temperatureEvent.temperature)) {
+    temperature = temperatureEvent.temperature;
+  }
 
-    event = dht.readHumidity();
-    if (!isnan(event)) humidity = event;
+  if (!isnan(humidityEvent.relative_humidity)) {
+    humidity = humidityEvent.relative_humidity;
   }
 
   if (hasEns && ens160.checkDataStatus()) {
