@@ -17,7 +17,7 @@
 ESP8266WebServer server(80);
 Routes routes(&server);
 
-DHT_Unified dht(4, DHT22);
+DHT_Unified dht(14, DHT22);
 SparkFun_ENS160 ens160;
 Adafruit_AHTX0 aht;
 
@@ -145,8 +145,8 @@ void handleCommands() {
         "\"commands\":{"
           "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature\", \"mode\": \"none\"},"
           "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity\", \"mode\": \"none\"},"
-          "\"humidity\":{\"icon\": \"gauge\",\"title\":\"%g ppm\",\"summary\":\"eCO2\", \"mode\": \"none\"},"
-          "\"humidity\":{\"icon\": \"gauge\",\"title\":\"%g\",\"summary\":\"AQI\", \"mode\": \"none\"}"
+          "\"eco2\":{\"icon\": \"gauge\",\"title\":\"%g ppm\",\"summary\":\"eCO2\", \"mode\": \"none\"},"
+          "\"aqi\":{\"icon\": \"gauge\",\"title\":\"%g\",\"summary\":\"AQI\", \"mode\": \"none\"}"
         "}"
       "}"
     ),
