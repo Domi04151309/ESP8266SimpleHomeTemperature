@@ -5,7 +5,10 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266SSDP.h>
 #include <LittleFS.h>
+#include <Wire.h>
 #include <DHT.h>
+#include <SparkFun_ENS160.h>
+#include <Adafruit_AHTX0.h>
 #include "Connectivity.h"
 #include "Routes.h"
 #include "Files.h"
@@ -13,11 +16,19 @@
 
 ESP8266WebServer server(80);
 Routes routes(&server);
+
 DHT dht(4, DHT22);
+SparkFun_ENS160 ens160;
+Adafruit_AHTX0 aht;
+
+bool hasEns = false;
+bool hasAht = false;
 
 unsigned long lastMillis = 0;
 float temperature = 0;
 float humidity = 0;
+float eCo2 = 0;
+float aqi = 0;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -28,7 +39,16 @@ void setup() {
   #endif
 
   LittleFS.begin();
+  Wire.begin();
   dht.begin();
+  hasEns = ens160.begin();
+  hasAht = aht.begin();
+
+  if (hasEns) {
+    ens160.setOperatingMode(SFE_ENS160_RESET);
+    delay(100);
+    ens160.setOperatingMode(SFE_ENS160_STANDARD);
+  }
 
   delay(500);
 
@@ -91,20 +111,31 @@ void loop() {
 }
 
 void updateSensorData() {
-  float event;
+  if (hasAht) {
+    sensors_event_t humidityEvent, temperatureEvent;
 
-  event = dht.readTemperature();
-  if (!isnan(event)) temperature = event;
+    aht.getEvent(&humidityEvent, &temperatureEvent);
 
-  event = dht.readHumidity();
-  if (!isnan(event)) humidity = event;
+    temperature = temperatureEvent.temperature;
+    humidity = humidityEvent.relative_humidity;
+  } else {
+    float event;
+
+    event = dht.readTemperature();
+    if (!isnan(event)) temperature = event;
+
+    event = dht.readHumidity();
+    if (!isnan(event)) humidity = event;
+  }
+
+  if (hasEns && ens160.checkDataStatus()) {
+    eCo2 = ens160.getECO2();
+    aqi = ens160.getAQI();
+  }
 }
 
 void handleCommands() {
-  updateSensorData();
-
-  String roomName = readFromFile("room_name");
-  char message[256];
+  char message[512];
 
   snprintf_P(
     message,
@@ -112,15 +143,17 @@ void handleCommands() {
     PSTR(
       "{"
         "\"commands\":{"
-          "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature in your %s\", \"mode\": \"none\"},"
-          "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity in your %s\", \"mode\": \"none\"}"
+          "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature\", \"mode\": \"none\"},"
+          "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity\", \"mode\": \"none\"},"
+          "\"humidity\":{\"icon\": \"gauge\",\"title\":\"%g ppm\",\"summary\":\"eCO2\", \"mode\": \"none\"},"
+          "\"humidity\":{\"icon\": \"gauge\",\"title\":\"%g\",\"summary\":\"AQI\", \"mode\": \"none\"}"
         "}"
       "}"
     ),
     temperature,
-    roomName.c_str(),
     humidity,
-    roomName.c_str()
+    eCo2,
+    aqi
   );
 
   server.keepAlive(false);
