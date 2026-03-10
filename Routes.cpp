@@ -43,20 +43,15 @@ void Routes::begin() {
 }
 
 void Routes::handleRoot() {
-  server.keepAlive(false);
-  server.send(
-    200,
-    MIME_HTML,
+  sendPage(
     F(
-      "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Settings</h1>"
       "<p>Welcome to your ESP8266! What do you want to do?</p>"
-      "<nav><ul>"
+      "<ul>"
       "<li><a href='/wifi'>Configure WiFi</a></li>"
-      "<li><a href='/room-name'>Change Room Name</a></li>"
+      "<li><a href='/room-name'>Change room name</a></li>"
       "<li><a href='/status'>View the device's status</a></li>"
-      "</ul></nav>"
-      "</body></html>"
+      "</ul>"
     )
   );
 }
@@ -66,8 +61,12 @@ void Routes::handleWiFi() {
 
   String page;
   page += F(
-            "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>WiFi Configuration</h1>"
+            "<p>The current SSID is &ldquo;"
+          );
+  page += ssid;
+  page += F(
+            "&rdquo;.</p>"
             "<h2>Available Networks</h2>"
             "<ul id='list'><li>Loading</li></ul>"
             "<h2>Connect to a Network</h2>"
@@ -80,15 +79,10 @@ void Routes::handleWiFi() {
             "<input type='password' placeholder='Password' name='password' required />"
             "<input type='submit' value='Connect' />"
             "</form>"
-            "<p>You may want to <a href='/'>return to the home page</a>.</p>"
             "<script src='/wifi-script' defer></script>"
-            "</body></html>"
           );
 
-  server.sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
-  server.sendHeader(F("Expires"), F("0"));
-  server.keepAlive(false);
-  server.send(200, MIME_HTML, page);
+  sendPage(page);
 }
 
 void Routes::handleWiFiScript() {
@@ -98,24 +92,19 @@ void Routes::handleWiFiScript() {
     F("text/javascript"),
     F(
       "const list = document.getElementById('list');"
+
       "loadNetworks();"
-      "function loadNetworks() {"
-        "fetch('/wifi-result').then(response => {"
-          "if (!response.ok) console.error(response.status);"
-          "else return response.json();"
-        "}).then(json => {"
-          "list.innerHTML = '';"
-          "json.forEach(element => appendItem(element));"
-        "}).catch(error => {"
-          "console.error(error);"
-          "list.innerHTML = '';"
-          "appendItem('An error occurred');"
-        "});"
-      "}"
-      "function appendItem(text) {"
-        "const li = document.createElement('li');"
-        "li.textContent = text;"
-        "list.appendChild(li);"
+
+      "async function loadNetworks() {"
+        "const response = await fetch('/wifi-result');"
+        "const json = await response.json();"
+
+        "list.textContent = '';"
+        "list.replaceChildren(...json.map(item => {"
+          "const li = document.createElement('li');"
+          "li.textContent = item;"
+          "return li;"
+        "}));"
       "}"
     )
   );
@@ -144,26 +133,18 @@ void Routes::handleWiFiResult() {
 }
 
 void Routes::handleWiFiSave() {
-  this->shouldRestart = true;
+  shouldRestart = true;
 
-  String ssid = server.arg("ssid");
-  String password = server.arg("password");
+  writeToFile("ssid", server.arg("ssid").c_str());
+  writeToFile("password", server.arg("password").c_str());
 
-  server.keepAlive(false);
-  server.send(
-    200,
-    MIME_HTML,
+  sendPage(
     F(
-      "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Success</h1>"
       "<p>Updated WiFi settings successfully! Your device will restart now!</p>"
       "<script src='/request-restart' defer></script>"
-      "</body></html>"
     )
   );
-
-  writeToFile("ssid", ssid.c_str());
-  writeToFile("password", password.c_str());
 }
 
 void Routes::handleRoomName() {
@@ -171,55 +152,41 @@ void Routes::handleRoomName() {
 
   String page;
   page += F(
-            "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>Room Name</h1>"
             "<p>The current room name is &ldquo;"
           );
-  page += roomName.c_str();
+  page += roomName;
   page += F(
             "&rdquo;.</p>"
             "<h2>Change Room Name</h2>"
             "<form method='POST' action='room-name-save'>"
             "<input type='text' placeholder='Room name' name='name' value='"
           );
-  page += roomName.c_str();
+  page += roomName;
   page += F(
             "' />"
             "<input type='submit' value='Change' />"
             "</form>"
-            "<p>You may want to <a href='/'>return to the home page</a>.</p>"
-            "</body></html>"
           );
 
-  server.sendHeader(F("Cache-Control"), F( "no-cache, no-store, must-revalidate"));
-  server.sendHeader(F("Expires"), F("0"));
-  server.keepAlive(false);
-  server.send(200, MIME_HTML, page);
+  sendPage(page);
 }
 
 void Routes::handleRoomNameSave() {
-  String roomName = server.arg("name");
+  writeToFile("room_name", server.arg("name").c_str());
 
-  server.keepAlive(false);
-  server.send(
-    200,
-    MIME_HTML,
+  sendPage(
     F(
-      "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>Success</h1>"
-      "<p>Updated the room name successfully!</p>"
-      "<p>You may want to <a href='/'>return to the home page</a>.</p>"
-      "</body></html>"
+      "<p>Updated room name successfully!</p>"
     )
   );
-
-  writeToFile("room_name", roomName.c_str());
 }
 
 void Routes::handleRequestRestart() {
   server.keepAlive(false);
   server.send(200, F("text/javascript"), F("console.log('Restarting');"));
-  if (this->shouldRestart) {
+  if (shouldRestart) {
     delay(1500);
     ESP.restart();
   }
@@ -234,7 +201,6 @@ void Routes::handleStatus() {
 
   String page;
   page += F(
-            "<!doctype html><html>" HTML_HEAD "<body>"
             "<h1>Status</h1>"
             "<ul>"
             "<li>WiFi: "
@@ -266,14 +232,9 @@ void Routes::handleStatus() {
             "<li>LOGGING IS ENABLED</li>"
             #endif
             "</ul>"
-            "<p>You may want to <a href='/'>return to the home page</a>.</p>"
-            "</body></html>"
           );
 
-  server.sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
-  server.sendHeader(F("Expires"), F("0"));
-  server.keepAlive(false);
-  server.send(200, MIME_HTML, page);
+  sendPage(page);
 }
 
 void Routes::handleCss() {
@@ -292,16 +253,38 @@ void Routes::handleCss() {
 }
 
 void Routes::handleNotFound() {
-  server.keepAlive(false);
-  server.send(
-    404,
-    MIME_HTML,
+  sendPage(
     F(
-      "<!doctype html><html>" HTML_HEAD "<body>"
       "<h1>404</h1>"
       "<p>Not found!</p>"
-      "<p>You may want to <a href='/'>return to the home page</a>.</p>"
-      "</body></html>"
-    )
+    ),
+    404
   );
+}
+
+void Routes::sendPage(const String &body, int code) {
+  String page;
+  page.reserve(1024);
+  page += F(
+            "<!doctype html>"
+            "<html>"
+              "<head>"
+                "<meta charset='utf-8'>"
+                "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+                "<title>Settings</title>"
+                "<link rel='stylesheet' href='/css'>"
+              "</head>"
+              "<body>"
+          );
+  page += body;
+  page += F(
+                "<p><a href='/'>Return to home page</a></p>"
+              "</body>"
+            "</html>"
+          );
+
+  server.keepAlive(false);
+  server.sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
+  server.sendHeader(F("Expires"), F("0"));
+  server.send(code, F("text/html"), page);
 }

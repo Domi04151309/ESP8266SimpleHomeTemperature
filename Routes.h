@@ -1,10 +1,8 @@
 #ifndef ROUTES_H
 #define ROUTES_H
 
+#include <Arduino.h>
 #include <ESP8266WebServer.h>
-
-#define HTML_HEAD "<head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Settings</title><link rel='stylesheet' href='/css'></head>"
-#define MIME_HTML F("text/html")
 
 class Routes {
   public:
@@ -24,6 +22,7 @@ class Routes {
     void handleStatus();
     void handleCss();
     void handleNotFound();
+    void sendPage(const String &body, int code = 200);
 };
 
 #endif
