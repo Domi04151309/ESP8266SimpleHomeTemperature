@@ -76,9 +76,11 @@ void setup() {
   server.begin();
 
   //Service Discovery
+  String roomName = readFromFile("room_name");
+
   SSDP.setSchemaURL(F("description.xml"));
   SSDP.setHTTPPort(80);
-  SSDP.setName(F("Thermometer"));
+  SSDP.setName(roomName.length() > 0 ? roomName : F("ESP8266-SimpleHome"));
   SSDP.setURL(F("status"));
   SSDP.setModelName(F("SimpleHome"));
   SSDP.setModelNumber(F("0"));
