@@ -4,7 +4,7 @@
 #include <cstdint>
 
 void configureNetwork();
-void startAP();
-uint8_t RSSIToPercent(long rssi);
+void startAccessPoint();
+uint8_t rssiToPercent(long rssi);
 
 #endif

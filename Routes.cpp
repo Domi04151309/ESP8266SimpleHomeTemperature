@@ -1,12 +1,12 @@
 #include "Routes.h"
 
-#include <cstdint>
 #include <Arduino.h>
+#include <cstdint>
 #include <ESP8266WiFi.h>
-#include "Files.h"
-#include "Connectivity.h"
-#include "Logging.h"
 #include "Config.h"
+#include "Connectivity.h"
+#include "Files.h"
+#include "Logging.h"
 
 Routes::Routes(ESP8266WebServer* webServer) {
   server = webServer;
@@ -216,7 +216,7 @@ void Routes::handleStatus() {
             "</li>"
             "<li>Signal Strength: "
           );
-  page += RSSIToPercent(WiFi.RSSI());
+  page += rssiToPercent(WiFi.RSSI());
   page += F(
             " %</li>"
             "<li>RAM Usage: "

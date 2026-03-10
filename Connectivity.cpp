@@ -1,9 +1,9 @@
 #include "Connectivity.h"
 
 #include <ESP8266WiFi.h>
+#include "Config.h"
 #include "Files.h"
 #include "Logging.h"
-#include "Config.h"
 
 void configureNetwork() {
   LOG("Configuring network...\n");
@@ -14,7 +14,7 @@ void configureNetwork() {
   wifi_set_sleep_type(NONE_SLEEP_T);
 
   if (ssid.length() == 0 || password.length() == 0) {
-    startAP();
+    startAccessPoint();
   } else {
     LOG("Attempting to connect...\n");
 
@@ -37,7 +37,7 @@ void configureNetwork() {
       LOG("Failed to connect\n");
 
       WiFi.disconnect();
-      startAP();
+      startAccessPoint();
     } else {
       LOG("Connected to %s\n", WiFi.SSID().c_str());
       LOG("IP: %s\n", WiFi.localIP().toString().c_str());
@@ -45,7 +45,7 @@ void configureNetwork() {
   }
 }
 
-void startAP() {
+void startAccessPoint() {
   LOG("Starting access point...\n");
 
   IPAddress apIP(192, 168, 1, 1);
@@ -57,7 +57,7 @@ void startAP() {
   WiFi.softAP(AP_SSID, AP_PASSWORD);
 }
 
-uint8_t RSSIToPercent(long rssi) {
+uint8_t rssiToPercent(long rssi) {
   if (rssi <= -100) {
     return 0;
   }

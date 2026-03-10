@@ -1,28 +1,28 @@
 #include "Config.h"
 
-#include <ESP8266WiFi.h>
-#include "src/Mod_ESP8266Ping.h"
-#include <ESP8266WebServer.h>
-#include <ESP8266SSDP.h>
-#include <LittleFS.h>
-#include <Wire.h>
-#include <DHT_U.h>
-#include <SparkFun_ENS160.h>
 #include <Adafruit_AHTX0.h>
+#include <DHT_U.h>
+#include <ESP8266SSDP.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266WiFi.h>
+#include <LittleFS.h>
+#include <SparkFun_ENS160.h>
+#include <Wire.h>
+#include "src/Mod_ESP8266Ping.h"
 #include "Connectivity.h"
-#include "Routes.h"
 #include "Files.h"
 #include "Logging.h"
+#include "Routes.h"
 
 ESP8266WebServer server(80);
 Routes routes(&server);
 
 DHT_Unified dht(14, DHT22);
-SparkFun_ENS160 ens160;
 Adafruit_AHTX0 aht;
+SparkFun_ENS160 ens160;
 
-bool hasEns = false;
 bool hasAht = false;
+bool hasEns = false;
 
 unsigned long lastMillis = 0;
 float temperature = 0;
@@ -41,8 +41,8 @@ void setup() {
   LittleFS.begin();
   Wire.begin();
   dht.begin();
-  hasEns = ens160.begin();
   hasAht = aht.begin();
+  hasEns = ens160.begin();
 
   if (hasEns) {
     ens160.setOperatingMode(SFE_ENS160_RESET);
@@ -94,7 +94,7 @@ void setup() {
 void loop() {
   server.handleClient();
 
-  if (millis() - lastMillis >= PING_INTERVAL) {
+  if (millis() - lastMillis >= UPDATE_INTERVAL) {
     lastMillis = millis();
 
     updateSensorData();
@@ -103,7 +103,7 @@ void loop() {
     LOG(
       "WiFi: %s (%d %%) | Heap: %d %% | Frag: %d %%\n",
       WiFi.status() == WL_CONNECTED ? "OK" : "LOST",
-      RSSIToPercent(WiFi.RSSI()),
+      rssiToPercent(WiFi.RSSI()),
       (int)((ESP.getFreeHeap() * 100) / 81920),
       ESP.getHeapFragmentation()
     );

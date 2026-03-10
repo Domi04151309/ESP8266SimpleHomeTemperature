@@ -7,6 +7,6 @@
 //#define LOGGING
 
 #define LOOP_DELAY 200
-#define PING_INTERVAL 60000
+#define UPDATE_INTERVAL 60000
 
 #endif
