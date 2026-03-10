@@ -1,6 +1,7 @@
 #include "Connectivity.h"
 
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 #include "Config.h"
 #include "Files.h"
 #include "Logging.h"
@@ -43,6 +44,12 @@ void configureNetwork() {
       LOG("IP: %s\n", WiFi.localIP().toString().c_str());
     }
   }
+}
+
+void sendHeartbeat(WiFiUDP &udpInstance) {
+  udpInstance.beginPacket(WiFi.gatewayIP(), 7);
+  udpInstance.write(0);
+  udpInstance.endPacket();
 }
 
 void startAccessPoint() {

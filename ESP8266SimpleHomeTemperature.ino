@@ -7,8 +7,8 @@
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
 #include <SparkFun_ENS160.h>
+#include <WiFiUdp.h>
 #include <Wire.h>
-#include "src/Mod_ESP8266Ping.h"
 #include "Connectivity.h"
 #include "Files.h"
 #include "Logging.h"
@@ -16,6 +16,7 @@
 
 ESP8266WebServer server(80);
 Routes routes(&server);
+WiFiUDP heartbeatUdp;
 
 DHT_Unified dht(14, DHT22);
 Adafruit_AHTX0 aht;
@@ -101,7 +102,7 @@ void loop() {
     lastMillis = millis();
 
     updateSensorData();
-    Ping.ping(WiFi.gatewayIP());
+    sendHeartbeat(heartbeatUdp);
 
     LOG(
       "WiFi: %s (%d %%) | Heap: %d %% | Frag: %d %%\n",
