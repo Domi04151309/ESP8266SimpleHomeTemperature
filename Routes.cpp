@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <cstdint>
+#include <ESP8266SSDP.h>
 #include <ESP8266WiFi.h>
 #include "Config.h"
 #include "Connectivity.h"
@@ -11,6 +12,18 @@
 Routes::Routes(ESP8266WebServer &webServer): server(webServer), shouldRestart(false) {}
 
 void Routes::begin() {
+  String roomName = readFromFile("room_name");
+
+  SSDP.setSchemaURL(F("description.xml"));
+  SSDP.setHTTPPort(80);
+  SSDP.setName(roomName.length() > 0 ? roomName : F("ESP8266-SimpleHome"));
+  SSDP.setURL(F("status"));
+  SSDP.setModelName(F("SimpleHome"));
+  SSDP.setModelNumber(F("0"));
+  SSDP.setModelURL(F("https://github.com/Domi04151309/HomeApp"));
+  SSDP.setDeviceType(F("upnp:rootdevice"));
+  SSDP.begin();
+
   server.on(F("/"), HTTP_GET, [this]() { this->handleRoot(); });
   server.on(F("/wifi"), HTTP_GET, [this]() { this->handleWiFi(); });
   server.on(F("/wifi-script"), HTTP_GET, [this]() { this->handleWiFiScript(); });
@@ -21,6 +34,11 @@ void Routes::begin() {
   server.on(F("/request-restart"), HTTP_GET, [this]() { this->handleRequestRestart(); });
   server.on(F("/status"), HTTP_GET, [this]() { this->handleStatus(); });
   server.on(F("/css"), HTTP_GET, [this]() { this->handleCss(); });
+  server.on(F("/description.xml"), HTTP_GET, [this]() {
+    WiFiClient client = this->server.client();
+    SSDP.schema(client);
+    client.stop();
+  });
   server.onNotFound([this]() { this->handleNotFound(); });
 }
 

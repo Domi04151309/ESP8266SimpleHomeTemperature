@@ -2,7 +2,6 @@
 
 #include <Adafruit_AHTX0.h>
 #include <DHT_U.h>
-#include <ESP8266SSDP.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
@@ -10,7 +9,6 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 #include "Connectivity.h"
-#include "Files.h"
 #include "Logging.h"
 #include "Routes.h"
 
@@ -59,25 +57,7 @@ void setup() {
   //Add routes
   routes.begin();
   server.on(F("/commands"), HTTP_GET, handleCommands);
-  server.on(F("/description.xml"), HTTP_GET, []() {
-    WiFiClient client = server.client();
-    SSDP.schema(client);
-    client.stop();
-  });
   server.begin();
-
-  //Service Discovery
-  String roomName = readFromFile("room_name");
-
-  SSDP.setSchemaURL(F("description.xml"));
-  SSDP.setHTTPPort(80);
-  SSDP.setName(roomName.length() > 0 ? roomName : F("ESP8266-SimpleHome"));
-  SSDP.setURL(F("status"));
-  SSDP.setModelName(F("SimpleHome"));
-  SSDP.setModelNumber(F("0"));
-  SSDP.setModelURL(F("https://github.com/Domi04151309/HomeApp"));
-  SSDP.setDeviceType(F("upnp:rootdevice"));
-  SSDP.begin();
 
   // Set initial sensor data
   updateSensorData();
