@@ -11,7 +11,7 @@ void configureNetwork() {
   String ssid = readFromFile("ssid");
   String password = readFromFile("password");
 
-  wifi_set_sleep_type(NONE_SLEEP_T);
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
   if (ssid.length() == 0 || password.length() == 0) {
     startAccessPoint();
