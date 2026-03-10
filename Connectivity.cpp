@@ -19,12 +19,10 @@ void configureNetwork() {
     LOG("Attempting to connect...\n");
 
     String roomName = readFromFile("room_name");
-    char customHostname[48];
-    snprintf_P(customHostname, sizeof(customHostname), PSTR("ESP8266-SimpleHome-%s"), roomName.c_str());
 
     WiFi.persistent(false);
     WiFi.mode(WIFI_STA);
-    WiFi.hostname(customHostname);
+    WiFi.hostname(roomName.length() > 0 ? roomName : F("ESP8266-SimpleHome"));
     WiFi.begin(ssid, password);
 
     for (uint8_t i = 0; i < 50; i++) {
