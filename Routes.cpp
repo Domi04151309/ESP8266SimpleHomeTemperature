@@ -8,15 +8,25 @@
 #include "Files.h"
 #include "Logging.h"
 
-Routes::Routes(ESP8266WebServer* webServer) {
-  server = webServer;
+Routes::Routes(ESP8266WebServer &webServer): server(webServer), shouldRestart(false) {}
+
+void Routes::begin() {
+  server.on(F("/"), HTTP_GET, [this]() { this->handleRoot(); });
+  server.on(F("/wifi"), HTTP_GET, [this]() { this->handleWiFi(); });
+  server.on(F("/wifi-script"), HTTP_GET, [this]() { this->handleWiFiScript(); });
+  server.on(F("/wifi-result"), HTTP_GET, [this]() { this->handleWiFiResult(); });
+  server.on(F("/wifi-save"), HTTP_ANY, [this]() { this->handleWiFiSave(); });
+  server.on(F("/room-name"), HTTP_GET, [this]() { this->handleRoomName(); });
+  server.on(F("/room-name-save"), HTTP_ANY, [this]() { this->handleRoomNameSave(); });
+  server.on(F("/request-restart"), HTTP_GET, [this]() { this->handleRequestRestart(); });
+  server.on(F("/status"), HTTP_GET, [this]() { this->handleStatus(); });
+  server.on(F("/css"), HTTP_GET, [this]() { this->handleCss(); });
+  server.onNotFound([this]() { this->handleNotFound(); });
 }
 
-bool Routes::shouldRestart = false;
-
 void Routes::handleRoot() {
-  server->keepAlive(false);
-  server->send(
+  server.keepAlive(false);
+  server.send(
     200,
     MIME_HTML,
     F(
@@ -57,15 +67,15 @@ void Routes::handleWiFi() {
             "</body></html>"
           );
 
-  server->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
-  server->sendHeader(F("Expires"), F("0"));
-  server->keepAlive(false);
-  server->send(200, MIME_HTML, page);
+  server.sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
+  server.sendHeader(F("Expires"), F("0"));
+  server.keepAlive(false);
+  server.send(200, MIME_HTML, page);
 }
 
 void Routes::handleWiFiScript() {
-  server->keepAlive(false);
-  server->send(
+  server.keepAlive(false);
+  server.send(
     200,
     F("text/javascript"),
     F(
@@ -109,20 +119,20 @@ void Routes::handleWiFiResult() {
   }
   page += F("]");
 
-  server->keepAlive(false);
-  server->send(200, F("application/json"), page);
+  server.keepAlive(false);
+  server.send(200, F("application/json"), page);
 
   WiFi.scanDelete();
 }
 
 void Routes::handleWiFiSave() {
-  Routes::shouldRestart = true;
+  this->shouldRestart = true;
 
-  String ssid = server->arg("ssid");
-  String password = server->arg("password");
+  String ssid = server.arg("ssid");
+  String password = server.arg("password");
 
-  server->keepAlive(false);
-  server->send(
+  server.keepAlive(false);
+  server.send(
     200,
     MIME_HTML,
     F(
@@ -163,17 +173,17 @@ void Routes::handleRoomName() {
             "</body></html>"
           );
 
-  server->sendHeader(F("Cache-Control"), F( "no-cache, no-store, must-revalidate"));
-  server->sendHeader(F("Expires"), F("0"));
-  server->keepAlive(false);
-  server->send(200, MIME_HTML, page);
+  server.sendHeader(F("Cache-Control"), F( "no-cache, no-store, must-revalidate"));
+  server.sendHeader(F("Expires"), F("0"));
+  server.keepAlive(false);
+  server.send(200, MIME_HTML, page);
 }
 
 void Routes::handleRoomNameSave() {
-  String roomName = server->arg("name");
+  String roomName = server.arg("name");
 
-  server->keepAlive(false);
-  server->send(
+  server.keepAlive(false);
+  server.send(
     200,
     MIME_HTML,
     F(
@@ -189,9 +199,9 @@ void Routes::handleRoomNameSave() {
 }
 
 void Routes::handleRequestRestart() {
-  server->keepAlive(false);
-  server->send(200, F("text/javascript"), F("console.log('Restarting');"));
-  if (Routes::shouldRestart) {
+  server.keepAlive(false);
+  server.send(200, F("text/javascript"), F("console.log('Restarting');"));
+  if (this->shouldRestart) {
     delay(1500);
     ESP.restart();
   }
@@ -242,15 +252,15 @@ void Routes::handleStatus() {
             "</body></html>"
           );
 
-  server->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
-  server->sendHeader(F("Expires"), F("0"));
-  server->keepAlive(false);
-  server->send(200, MIME_HTML, page);
+  server.sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
+  server.sendHeader(F("Expires"), F("0"));
+  server.keepAlive(false);
+  server.send(200, MIME_HTML, page);
 }
 
 void Routes::handleCss() {
-  server->keepAlive(false);
-  server->send(
+  server.keepAlive(false);
+  server.send(
     200,
     F("text/css"),
     F(
@@ -264,8 +274,8 @@ void Routes::handleCss() {
 }
 
 void Routes::handleNotFound() {
-  server->keepAlive(false);
-  server->send(
+  server.keepAlive(false);
+  server.send(
     404,
     MIME_HTML,
     F(

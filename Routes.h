@@ -8,7 +8,11 @@
 
 class Routes {
   public:
-    Routes(ESP8266WebServer* webServer);
+    Routes(ESP8266WebServer &webServer);
+    void begin();
+  private:
+    ESP8266WebServer &server;
+    bool shouldRestart;
     void handleRoot();
     void handleWiFi();
     void handleWiFiScript();
@@ -20,9 +24,6 @@ class Routes {
     void handleStatus();
     void handleCss();
     void handleNotFound();
-    static bool shouldRestart;
-  private:
-    ESP8266WebServer* server;
 };
 
 #endif

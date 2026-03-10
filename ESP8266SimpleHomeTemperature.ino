@@ -15,7 +15,7 @@
 #include "Routes.h"
 
 ESP8266WebServer server(80);
-Routes routes(&server);
+Routes routes(server);
 WiFiUDP heartbeatUdp;
 
 DHT_Unified dht(14, DHT22);
@@ -57,23 +57,13 @@ void setup() {
   configureNetwork();
 
   //Add routes
-  server.on(F("/"), HTTP_GET, []() { routes.handleRoot(); });
-  server.on(F("/wifi"), HTTP_GET, []() { routes.handleWiFi(); });
-  server.on(F("/wifi-script"), HTTP_GET, []() { routes.handleWiFiScript(); });
-  server.on(F("/wifi-result"), HTTP_GET, []() { routes.handleWiFiResult(); });
-  server.on(F("/wifi-save"), HTTP_ANY, []() { routes.handleWiFiSave(); });
-  server.on(F("/room-name"), HTTP_GET, []() { routes.handleRoomName(); });
-  server.on(F("/room-name-save"), HTTP_ANY, []() { routes.handleRoomNameSave(); });
-  server.on(F("/request-restart"), HTTP_GET, []() { routes.handleRequestRestart(); });
-  server.on(F("/status"), HTTP_GET, []() { routes.handleStatus(); });
+  routes.begin();
   server.on(F("/commands"), HTTP_GET, handleCommands);
-  server.on(F("/css"), HTTP_GET, []() { routes.handleCss(); });
   server.on(F("/description.xml"), HTTP_GET, []() {
     WiFiClient client = server.client();
     SSDP.schema(client);
     client.stop();
   });
-  server.onNotFound([]() { routes.handleNotFound(); });
   server.begin();
 
   //Service Discovery
