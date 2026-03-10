@@ -88,6 +88,9 @@ void setup() {
   SSDP.setDeviceType(F("upnp:rootdevice"));
   SSDP.begin();
 
+  // Set initial sensor data
+  updateSensorData();
+
   digitalWrite(LED_BUILTIN, 1);
 }
 
