@@ -26,8 +26,8 @@ bool hasEns = false;
 unsigned long lastMillis = 0;
 float temperature = 0;
 float humidity = 0;
-float eCo2 = 0;
-float aqi = 0;
+uint16_t eCo2 = 0;
+uint8_t aqi = 0;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -89,12 +89,8 @@ void loop() {
 void updateSensorData() {
   sensors_event_t temperatureEvent, humidityEvent;
 
-  if (hasAht) {
-    aht.getEvent(&humidityEvent, &temperatureEvent);
-  } else {
-    dht.temperature().getEvent(&temperatureEvent);
-    dht.humidity().getEvent(&humidityEvent);
-  }
+  dht.temperature().getEvent(&temperatureEvent);
+  dht.humidity().getEvent(&humidityEvent);
 
   if (!isnan(temperatureEvent.temperature)) {
     temperature = temperatureEvent.temperature;
@@ -102,6 +98,15 @@ void updateSensorData() {
 
   if (!isnan(humidityEvent.relative_humidity)) {
     humidity = humidityEvent.relative_humidity;
+  }
+
+  if (hasAht) {
+    aht.getEvent(&humidityEvent, &temperatureEvent);
+    ens160.setTempCompensationCelsius(temperatureEvent.temperature);
+    ens160.setRHCompensationFloat(humidityEvent.relative_humidity);
+  } else {
+    ens160.setTempCompensationCelsius(temperature);
+    ens160.setRHCompensationFloat(humidity);
   }
 
   if (hasEns && ens160.checkDataStatus()) {
@@ -119,10 +124,10 @@ void handleCommands() {
     PSTR(
       "{"
         "\"commands\":{"
-          "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%g °C\",\"summary\":\"Temperature\", \"mode\": \"none\"},"
-          "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%g %%\",\"summary\":\"Humidity\", \"mode\": \"none\"},"
-          "\"eco2\":{\"icon\": \"gauge\",\"title\":\"%g ppm\",\"summary\":\"eCO2\", \"mode\": \"none\"},"
-          "\"aqi\":{\"icon\": \"gauge\",\"title\":\"%g\",\"summary\":\"AQI\", \"mode\": \"none\"}"
+          "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%.1f °C\",\"summary\":\"Temperature\", \"mode\": \"none\"},"
+          "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%.1f %%\",\"summary\":\"Humidity\", \"mode\": \"none\"},"
+          "\"eco2\":{\"icon\": \"gauge\",\"title\":\"%u ppm\",\"summary\":\"eCO2\", \"mode\": \"none\"},"
+          "\"aqi\":{\"icon\": \"gauge\",\"title\":\"%u\",\"summary\":\"AQI\", \"mode\": \"none\"}"
         "}"
       "}"
     ),
