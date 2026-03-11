@@ -99,7 +99,6 @@ void Routes::handleWiFiScript() {
         "const response = await fetch('/wifi-result');"
         "const json = await response.json();"
 
-        "list.textContent = '';"
         "list.replaceChildren(...json.map(item => {"
           "const li = document.createElement('li');"
           "li.textContent = item;"
