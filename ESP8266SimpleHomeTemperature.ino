@@ -28,6 +28,8 @@ float temperature = 0;
 float humidity = 0;
 uint16_t eCo2 = 0;
 uint8_t aqi = 0;
+uint16_t tVoc = 0;
+uint16_t rawResistance = 0;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -112,11 +114,13 @@ void updateSensorData() {
   if (hasEns && ens160.checkDataStatus()) {
     eCo2 = ens160.getECO2();
     aqi = ens160.getAQI();
+    tVoc = ens160.getTVOC();
+    rawResistance = ens160.getRawResistance();
   }
 }
 
 void handleCommands() {
-  char message[512];
+  char message[768];
 
   snprintf_P(
     message,
@@ -127,14 +131,18 @@ void handleCommands() {
           "\"temperature\":{\"icon\": \"thermometer\",\"title\":\"%.1f °C\",\"summary\":\"Temperature\", \"mode\": \"none\"},"
           "\"humidity\":{\"icon\": \"hygrometer\",\"title\":\"%.1f %%\",\"summary\":\"Humidity\", \"mode\": \"none\"},"
           "\"eco2\":{\"icon\": \"gauge\",\"title\":\"%u ppm\",\"summary\":\"eCO2\", \"mode\": \"none\"},"
-          "\"aqi\":{\"icon\": \"gauge\",\"title\":\"%u\",\"summary\":\"AQI\", \"mode\": \"none\"}"
+          "\"tvoc\":{\"icon\": \"gauge\",\"title\":\"%u ppb\",\"summary\":\"Total VOCs\", \"mode\": \"none\"},"
+          "\"aqi\":{\"icon\": \"gauge\",\"title\":\"%u\",\"summary\":\"AQI\", \"mode\": \"none\"},"
+          "\"raw\":{\"icon\": \"gauge\",\"title\":\"%u Ω\",\"summary\":\"Raw Resistance\", \"mode\": \"none\"}"
         "}"
       "}"
     ),
     temperature,
     humidity,
     eCo2,
-    aqi
+    tVoc,
+    aqi,
+    rawResistance
   );
 
   server.keepAlive(false);
