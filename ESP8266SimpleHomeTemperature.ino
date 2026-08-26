@@ -112,9 +112,9 @@ void updateSensorData() {
   }
 
   if (hasEns && ens160.checkDataStatus()) {
-    eCo2 = ens160.getECO2();
+    eCo2 = min(ens160.getECO2(), (uint16_t) 6000);
     aqi = ens160.getAQI();
-    tVoc = ens160.getTVOC();
+    tVoc = min(ens160.getTVOC(), (uint16_t) 5500);
     rawResistance = ens160.getRawResistance();
   }
 }
